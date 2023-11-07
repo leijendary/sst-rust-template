@@ -1,8 +1,8 @@
 package main
 
 import (
-	"go-sst-template/internal/response"
 	"log"
+	"sst-go-template/internal/response"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"

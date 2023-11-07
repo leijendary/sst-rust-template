@@ -3,12 +3,12 @@ package main
 import (
 	"context"
 	"encoding/json"
-	samplev1 "go-sst-template/functions/v1/samples"
-	"go-sst-template/internal/db"
-	"go-sst-template/internal/model/sample"
-	"go-sst-template/internal/request"
-	"go-sst-template/internal/response"
-	"go-sst-template/internal/storage"
+	samplev1 "sst-go-template/functions/v1/samples"
+	"sst-go-template/internal/db"
+	"sst-go-template/internal/model/sample"
+	"sst-go-template/internal/request"
+	"sst-go-template/internal/response"
+	"sst-go-template/internal/storage"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"

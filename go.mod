@@ -1,4 +1,4 @@
-module go-sst-template
+module sst-go-template
 
 go 1.21.1
 

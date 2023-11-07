@@ -2,7 +2,7 @@ package response
 
 import (
 	"fmt"
-	"go-sst-template/internal/message"
+	"sst-go-template/internal/message"
 )
 
 type ErrorResponse struct {

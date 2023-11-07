@@ -2,7 +2,7 @@ package sample
 
 import (
 	"context"
-	"go-sst-template/internal/db"
+	"sst-go-template/internal/db"
 )
 
 type Service interface {

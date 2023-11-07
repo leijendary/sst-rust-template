@@ -1,6 +1,6 @@
 package request
 
-import "go-sst-template/internal/message"
+import "sst-go-template/internal/message"
 
 func Language(headers map[string]string) string {
 	lang, ok := headers["accept-language"]

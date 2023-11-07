@@ -1,7 +1,7 @@
 package samplev1
 
 import (
-	"go-sst-template/internal/model/sample"
+	"sst-go-template/internal/model/sample"
 	"time"
 )
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"go-sst-template/internal/db"
+	"sst-go-template/internal/db"
 	"strings"
 	"time"
 )

@@ -2,10 +2,10 @@ package db
 
 import (
 	"fmt"
-	"go-sst-template/internal/message"
-	"go-sst-template/internal/response"
 	"log"
 	"regexp"
+	"sst-go-template/internal/message"
+	"sst-go-template/internal/response"
 	"strings"
 
 	"github.com/iancoleman/strcase"

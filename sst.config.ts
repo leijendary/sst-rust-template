@@ -8,7 +8,7 @@ import DatabaseStack from "./stacks/DatabaseStack";
 export default {
   config(_input) {
     return {
-      name: "go-sst-template",
+      name: "sst-go-template",
       region: "eu-central-1",
     };
   },
