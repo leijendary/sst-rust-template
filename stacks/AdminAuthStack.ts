@@ -6,6 +6,13 @@ export default function AdminAuthStack({ stack }: StackContext) {
       userPool: {
         selfSignUpEnabled: false,
       },
+      userPoolClient: {
+        authFlows: {
+          adminUserPassword: true,
+          userPassword: true,
+        },
+        preventUserExistenceErrors: true,
+      },
     },
     login: ["email"],
   });

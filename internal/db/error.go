@@ -38,9 +38,10 @@ func uniqueViolation(lang string, e *pq.Error) error {
 		field = split[len(split)-1]
 	}
 
-	field = strings.ToUpper(field[:1]) + field[1:]
 	pointer := fmt.Sprintf("/data/%s/%s", strcase.ToCamel(e.Table), strcase.ToLowerCamel(field))
 	source := response.ErrorSource{Pointer: pointer}
+	field = strcase.ToDelimited(field, ' ')
+	field = strings.ToUpper(field[:1]) + field[1:]
 	return response.ErrorResponse{
 		Status: 409,
 		Errors: []response.Error{

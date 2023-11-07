@@ -22,8 +22,8 @@ export default function AdminApiStack({ stack }: StackContext) {
       },
     },
     routes: {
-      "GET /api/v1/samples": "functions/v1/samples/get",
-      "POST /api/v1/samples": "functions/v1/samples/save",
+      "GET /api/admin/samples": "functions/admin/samples/get",
+      "POST /api/admin/samples": "functions/admin/samples/save",
       $default: {
         authorizer: "none",
         function: "functions/default.go",

@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
-	samplev1 "sst-go-template/functions/v1/samples"
+	adminsample "sst-go-template/functions/admin/samples"
 	"sst-go-template/internal/db"
 	"sst-go-template/internal/model/sample"
 	"sst-go-template/internal/request"
@@ -22,7 +22,7 @@ var service = sample.NewService(repo)
 func handler(ctx context.Context, event events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	var (
 		lang = request.Language(event.Headers)
-		req  = samplev1.SampleRequest{}
+		req  = adminsample.SampleRequest{}
 	)
 	if err := json.Unmarshal([]byte(event.Body), &req); err != nil {
 		return response.InvalidBodyJSON(lang, err)
@@ -32,19 +32,20 @@ func handler(ctx context.Context, event events.APIGatewayV2HTTPRequest) (events.
 		return response.ErrorJSON(err)
 	}
 
+	userId := request.UserID(event.RequestContext.Authorizer)
 	s := sample.Sample{
 		Name:           req.Name,
 		Description:    req.Description,
 		Amount:         req.Amount,
 		Translations:   req.Translations,
-		CreatedBy:      "System",
-		LastModifiedBy: "System",
+		CreatedBy:      userId,
+		LastModifiedBy: userId,
 	}
 	if err := service.Create(ctx, lang, &s); err != nil {
 		return response.ErrorJSON(err)
 	}
 
-	res := &samplev1.SampleResponse{
+	res := &adminsample.SampleResponse{
 		ID:           s.ID,
 		Name:         s.Name,
 		Description:  s.Description,

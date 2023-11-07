@@ -1,4 +1,4 @@
-package samplev1
+package adminsample
 
 import (
 	"sst-go-template/internal/model/sample"
