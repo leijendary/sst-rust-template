@@ -5,7 +5,7 @@ import DatabaseStack from "./DatabaseStack";
 export default function AdminApiStack({ stack }: StackContext) {
   const { auth } = use(AdminAuthStack);
   const database = use(DatabaseStack);
-  const api = new Api(stack, "admin", {
+  const api = new Api(stack, "Admin", {
     authorizers: {
       jwt: {
         type: "user_pool",
