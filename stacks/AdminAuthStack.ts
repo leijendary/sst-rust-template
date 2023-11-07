@@ -5,6 +5,7 @@ export default function AdminAuthStack({ stack }: StackContext) {
     cdk: {
       userPool: {
         selfSignUpEnabled: false,
+        signInCaseSensitive: false,
       },
     },
     login: ["email"],
