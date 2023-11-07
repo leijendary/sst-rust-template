@@ -15,6 +15,7 @@ export default {
   stacks(app) {
     app.setDefaultFunctionProps({
       architecture: "arm_64",
+      logRetention: app.stage === "prod" ? "three_months" : "one_week",
       runtime: "go",
     });
     app
