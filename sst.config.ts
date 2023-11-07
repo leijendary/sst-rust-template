@@ -1,6 +1,9 @@
 import { SSTConfig } from "sst";
-import ApiStack from "./stacks/ApiStack";
-import AuthStack from "./stacks/AuthStack";
+import AdminApiStack from "./stacks/AdminApiStack";
+import AdminAuthStack from "./stacks/AdminAuthStack";
+import CustomerApiStack from "./stacks/CustomerApiStack";
+import CustomerAuthStack from "./stacks/CustomerAuthStack";
+import DatabaseStack from "./stacks/DatabaseStack";
 
 export default {
   config(_input) {
@@ -14,6 +17,11 @@ export default {
       architecture: "arm_64",
       runtime: "go",
     });
-    app.stack(AuthStack).stack(ApiStack);
+    app
+      .stack(DatabaseStack)
+      .stack(CustomerAuthStack)
+      .stack(CustomerApiStack)
+      .stack(AdminAuthStack)
+      .stack(AdminApiStack);
   },
 } satisfies SSTConfig;

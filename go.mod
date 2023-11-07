@@ -27,7 +27,6 @@ require (
 require (
 	github.com/Masterminds/semver/v3 v3.2.1 // indirect
 	github.com/aws/aws-sdk-go-v2/config v1.19.1
-	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.30.0
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.40.0
 	github.com/cdklabs/awscdk-asset-awscli-go/awscliv1/v2 v2.2.201 // indirect
 	github.com/cdklabs/awscdk-asset-kubectl-go/kubectlv20/v2 v2.1.2 // indirect

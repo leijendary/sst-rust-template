@@ -1,11 +1,11 @@
 import { Api, StackContext, use } from "sst/constructs";
-import DatabaseConfig from "../config/DatabaseConfig";
-import AuthStack from "./AuthStack";
+import AdminAuthStack from "./AdminAuthStack";
+import DatabaseStack from "./DatabaseStack";
 
-export default function ApiStack({ stack }: StackContext) {
-  const { auth } = use(AuthStack);
-  const database = DatabaseConfig(stack);
-  const api = new Api(stack, "api", {
+export default function AdminApiStack({ stack }: StackContext) {
+  const { auth } = use(AdminAuthStack);
+  const database = use(DatabaseStack);
+  const api = new Api(stack, "admin", {
     authorizers: {
       jwt: {
         type: "user_pool",
