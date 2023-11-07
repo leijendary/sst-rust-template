@@ -1,6 +1,8 @@
 package message
 
 const (
-	ServerInternal = "server.internal"
-	RequestInvalid = "request.invalid"
+	MappingNotFound  = "mapping.notFound"
+	ResourceNotFound = "resource.notFound"
+	ServerInternal   = "server.internal"
+	RequestInvalid   = "request.invalid"
 )

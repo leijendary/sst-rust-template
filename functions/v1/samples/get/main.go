@@ -9,9 +9,7 @@ import (
 )
 
 func handler(event events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-	log.Println(event.RequestContext.Authorizer.JWT.Claims)
-	log.Println(event.RequestContext.Authorizer.JWT.Scopes)
-	log.Println(event.RequestContext.Authorizer.IAM.CognitoIdentity.IdentityPoolID)
+	log.Println(event.RequestContext.Authorizer.IAM.CognitoIdentity.IdentityID)
 	log.Println(event.RequestContext.Authorizer.IAM.UserID)
 	return response.JSON(nil, 200)
 }

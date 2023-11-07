@@ -8,6 +8,8 @@ var messages = map[string]map[string]string{
 	DefaultLanguage: {
 		ValidationRequired:  "%s is a required field",
 		ValidationDuplicate: "%s is already taken",
+		ResourceNotFound:    "Missing resource. Are you sure this is it?",
+		MappingNotFound:     "Where are you going? Are you lost?",
 		ServerInternal:      "Oops! Something went wrong",
 		RequestInvalid:      "There was something wrong with the request",
 	},

@@ -26,7 +26,7 @@ export default function CustomerApiStack({ stack }: StackContext) {
       "POST /api/v1/samples": "functions/v1/samples/save",
       $default: {
         authorizer: "none",
-        function: "functions/default",
+        function: "functions/default.go",
       },
     },
   });
