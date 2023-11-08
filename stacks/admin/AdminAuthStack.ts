@@ -1,6 +1,6 @@
 import { Cognito, StackContext } from "sst/constructs";
 
-export default function AdminAuthStack({ stack, app }: StackContext) {
+export function AdminAuthStack({ stack, app }: StackContext) {
   const domainPrefix = `${app.name}-admin${stack.stage === "prod" ? "" : `-${stack.stage}`}`;
   const auth = new Cognito(stack, "Admin", {
     cdk: {
@@ -24,7 +24,7 @@ export default function AdminAuthStack({ stack, app }: StackContext) {
   });
 
   stack.addOutputs({
-    Domain: `https://${domainPrefix}.auth.${stack.region}.amazoncognito.com`,
+    CognitoDomain: `https://${domainPrefix}.auth.${stack.region}.amazoncognito.com`,
     UserPoolId: auth.userPoolId,
     IdentityPoolId: auth.cognitoIdentityPoolId,
     UserPoolClientId: auth.userPoolClientId,

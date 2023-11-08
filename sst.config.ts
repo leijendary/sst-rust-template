@@ -1,9 +1,9 @@
 import { SSTConfig } from "sst";
-import AdminApiStack from "./stacks/AdminApiStack";
-import AdminAuthStack from "./stacks/AdminAuthStack";
-import CustomerApiStack from "./stacks/CustomerApiStack";
-import CustomerAuthStack from "./stacks/CustomerAuthStack";
-import DatabaseStack from "./stacks/DatabaseStack";
+import { DatabaseStack } from "./stacks/DatabaseStack";
+import { AdminApiStack } from "./stacks/admin/AdminApiStack";
+import { AdminAuthStack } from "./stacks/admin/AdminAuthStack";
+import { CustomerApiStack } from "./stacks/customer/CustomerApiStack";
+import { CustomerAuthStack } from "./stacks/customer/CustomerAuthStack";
 
 export default {
   config(_input) {

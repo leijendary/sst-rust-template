@@ -1,6 +1,6 @@
 import { Config, StackContext } from "sst/constructs";
 
-export default function DatabaseStack({ stack }: StackContext) {
+export function DatabaseStack({ stack }: StackContext) {
   const username = new Config.Secret(stack, "DB_USERNAME");
   const password = new Config.Secret(stack, "DB_PASSWORD");
   const url = new Config.Secret(stack, "DB_URL");

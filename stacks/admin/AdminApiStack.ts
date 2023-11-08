@@ -1,11 +1,11 @@
 import { Api, StackContext, use } from "sst/constructs";
-import CustomerAuthStack from "./CustomerAuthStack";
-import DatabaseStack from "./DatabaseStack";
+import { DatabaseStack } from "../DatabaseStack";
+import { AdminAuthStack } from "./AdminAuthStack";
 
-export default function CustomerApiStack({ stack }: StackContext) {
-  const { auth } = use(CustomerAuthStack);
+export function AdminApiStack({ stack }: StackContext) {
+  const { auth } = use(AdminAuthStack);
   const database = use(DatabaseStack);
-  const api = new Api(stack, "Customer", {
+  const api = new Api(stack, "Admin", {
     authorizers: {
       jwt: {
         type: "user_pool",
@@ -22,8 +22,8 @@ export default function CustomerApiStack({ stack }: StackContext) {
       },
     },
     routes: {
-      "GET /api/v1/samples": "functions/v1/samples/get",
-      "POST /api/v1/samples": "functions/v1/samples/save",
+      "GET /api/admin/samples": "functions/admin/samples/get",
+      "POST /api/admin/samples": "functions/admin/samples/save",
       $default: {
         authorizer: "none",
         function: "functions/default.go",
