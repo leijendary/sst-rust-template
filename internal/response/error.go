@@ -10,7 +10,6 @@ type ErrorResponse struct {
 }
 
 type Error struct {
-	Id     string         `json:"id,omitempty"`
 	Code   string         `json:"code"`
 	Source ErrorSource    `json:"source"`
 	Meta   map[string]any `json:"meta,omitempty"`
@@ -36,13 +35,12 @@ func MappingNotFound() ErrorResponse {
 	}
 }
 
-func ResourceNotFound(id, pointer string) ErrorResponse {
+func ResourceNotFound() ErrorResponse {
 	return ErrorResponse{
 		Status: 404,
 		Errors: []Error{{
-			Id:     id,
 			Code:   "not_found",
-			Source: ErrorSource{Pointer: pointer},
+			Source: ErrorSource{Pointer: "/data"},
 		}},
 	}
 }

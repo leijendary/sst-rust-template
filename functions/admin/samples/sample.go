@@ -27,6 +27,7 @@ type SampleResponse struct {
 	Name         string                       `json:"name"`
 	Description  string                       `json:"description,omitempty"`
 	Amount       float64                      `json:"amount"`
+	Version      int8                         `json:"version"`
 	Translations []*SampleTranslationResponse `json:"translations"`
 	CreatedAt    time.Time                    `json:"createdAt"`
 }

@@ -1,6 +1,7 @@
 package db
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"regexp"
@@ -12,12 +13,22 @@ import (
 )
 
 func ParseError(err error) error {
-	e := err.(*pq.Error)
-	switch e.Code {
+	if err == sql.ErrNoRows {
+		return response.ResourceNotFound()
+	} else if driverErr, ok := err.(*pq.Error); ok {
+		return postgresError(driverErr)
+	} else {
+		log.Println(err)
+		return response.InternalServer()
+	}
+}
+
+func postgresError(err *pq.Error) error {
+	switch err.Code {
 	case "23505":
-		return uniqueViolation(e)
+		return uniqueViolation(err)
 	default:
-		log.Println(e.Code, e.Message, e.Detail)
+		log.Println(err.Code, err.Message, err.Detail)
 		return response.InternalServer()
 	}
 }

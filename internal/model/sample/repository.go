@@ -14,6 +14,7 @@ type Sample struct {
 	Name           string
 	Description    string
 	Amount         float64
+	Version        int8
 	Translations   []*SampleTranslation
 	CreatedAt      time.Time
 	CreatedBy      string
@@ -30,6 +31,7 @@ type SampleTranslation struct {
 
 type Repository interface {
 	save(ctx context.Context, tx *sql.Tx, s *Sample) error
+	get(ctx context.Context, id int64) (*Sample, error)
 }
 
 type repository struct {
@@ -50,6 +52,24 @@ func (r *repository) save(ctx context.Context, tx *sql.Tx, s *Sample) error {
 	}
 
 	return saveTranslations(ctx, tx, s.ID, s.Translations)
+}
+
+func (r *repository) get(ctx context.Context, id int64) (*Sample, error) {
+	query := `SELECT id, name, description, amount, version, created_at FROM sample WHERE id = $1 and deleted_at is null`
+	row := r.conn.QueryRowContext(ctx, query, id)
+	var s Sample
+	if err := row.Scan(&s.ID, &s.Name, &s.Description, &s.Amount, &s.Version, &s.CreatedAt); err != nil {
+		return nil, db.ParseError(err)
+	}
+
+	st, err := getTranslations(ctx, r.conn, id)
+	if err != nil {
+		return nil, err
+	}
+
+	s.Translations = st
+
+	return &s, nil
 }
 
 func saveTranslations(ctx context.Context, tx *sql.Tx, id int64, st []*SampleTranslation) error {
@@ -83,4 +103,24 @@ func saveTranslations(ctx context.Context, tx *sql.Tx, id int64, st []*SampleTra
 	}
 
 	return nil
+}
+
+func getTranslations(ctx context.Context, conn *sql.DB, id int64) ([]*SampleTranslation, error) {
+	query := `SELECT name, description, language, ordinal FROM sample_translation where id = $1`
+	rows, err := conn.QueryContext(ctx, query, id)
+	if err != nil {
+		return nil, db.ParseError(err)
+	}
+	defer rows.Close()
+
+	st := []*SampleTranslation{}
+	var t SampleTranslation
+	for i := 0; rows.Next(); i++ {
+		if err := rows.Scan(&t.Name, &t.Description, &t.Language, &t.Ordinal); err != nil {
+			return nil, db.ParseError(err)
+		}
+		st = append(st, &t)
+	}
+
+	return st, nil
 }

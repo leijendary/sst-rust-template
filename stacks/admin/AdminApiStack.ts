@@ -22,7 +22,7 @@ export function AdminApiStack({ stack }: StackContext) {
       },
     },
     routes: {
-      "GET /api/admin/samples": "functions/admin/samples/get",
+      "GET /api/admin/samples/{id}": "functions/admin/samples/get",
       "POST /api/admin/samples": "functions/admin/samples/save",
       $default: {
         authorizer: "none",

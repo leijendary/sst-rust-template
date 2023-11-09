@@ -32,3 +32,7 @@ func (svc *service) Create(ctx context.Context, s *Sample) error {
 
 	return db.Commit(tx)
 }
+
+func (svc *service) Get(ctx context.Context, id int64) (*Sample, error) {
+	return svc.repo.get(ctx, id)
+}
