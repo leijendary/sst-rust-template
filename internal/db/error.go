@@ -1,7 +1,6 @@
 package db
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"regexp"
@@ -13,9 +12,7 @@ import (
 )
 
 func ParseError(err error) error {
-	if err == sql.ErrNoRows {
-		return response.ResourceNotFound()
-	} else if driverErr, ok := err.(*pq.Error); ok {
+	if driverErr, ok := err.(*pq.Error); ok {
 		return postgresError(driverErr)
 	} else {
 		log.Println(err)

@@ -10,6 +10,7 @@ type ErrorResponse struct {
 }
 
 type Error struct {
+	Id     string         `json:"id,omitempty"`
 	Code   string         `json:"code"`
 	Source ErrorSource    `json:"source"`
 	Meta   map[string]any `json:"meta,omitempty"`
@@ -35,12 +36,13 @@ func MappingNotFound() ErrorResponse {
 	}
 }
 
-func ResourceNotFound() ErrorResponse {
+func ResourceNotFound(id any, pointer string) ErrorResponse {
 	return ErrorResponse{
 		Status: 404,
 		Errors: []Error{{
+			Id:     fmt.Sprintf("%#v", id),
 			Code:   "not_found",
-			Source: ErrorSource{Pointer: "/data"},
+			Source: ErrorSource{Pointer: pointer},
 		}},
 	}
 }

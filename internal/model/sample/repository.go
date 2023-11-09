@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"sst-go-template/internal/db"
+	"sst-go-template/internal/response"
 	"strings"
 	"time"
 )
@@ -59,6 +60,10 @@ func (r *repository) get(ctx context.Context, id int64) (*Sample, error) {
 	row := r.conn.QueryRowContext(ctx, query, id)
 	var s Sample
 	if err := row.Scan(&s.ID, &s.Name, &s.Description, &s.Amount, &s.Version, &s.CreatedAt); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, response.ResourceNotFound(id, "/data/sample")
+		}
+
 		return nil, db.ParseError(err)
 	}
 
