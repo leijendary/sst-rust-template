@@ -5,19 +5,19 @@ import (
 	"database/sql"
 )
 
-func BeginTx(ctx context.Context, conn *sql.DB, lang string) (*sql.Tx, error) {
+func BeginTx(ctx context.Context, conn *sql.DB) (*sql.Tx, error) {
 	tx, err := conn.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
-		return nil, ParseError(lang, err)
+		return nil, ParseError(err)
 	}
 
 	return tx, nil
 }
 
-func Commit(tx *sql.Tx, lang string) error {
+func Commit(tx *sql.Tx) error {
 	err := tx.Commit()
 	if err != nil {
-		return ParseError(lang, err)
+		return ParseError(err)
 	}
 
 	return nil

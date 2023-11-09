@@ -2,7 +2,6 @@ package response
 
 import (
 	"fmt"
-	"sst-go-template/internal/message"
 )
 
 type ErrorResponse struct {
@@ -11,10 +10,10 @@ type ErrorResponse struct {
 }
 
 type Error struct {
-	Id      string      `json:"id,omitempty"`
-	Code    string      `json:"code"`
-	Message string      `json:"message,omitempty"`
-	Source  ErrorSource `json:"source"`
+	Id     string         `json:"id,omitempty"`
+	Code   string         `json:"code"`
+	Source ErrorSource    `json:"source"`
+	Meta   map[string]any `json:"meta,omitempty"`
 }
 
 type ErrorSource struct {
@@ -27,46 +26,43 @@ func (e ErrorResponse) Error() string {
 	return fmt.Sprintf("Error %d: %+v", e.Status, e.Errors)
 }
 
-func BuildError(lang, code string, source ErrorSource, args ...any) Error {
-	return Error{
-		Code:    code,
-		Message: message.Template(lang, code, args...),
-		Source:  source,
-	}
-}
-
-func MappingNotFound(lang string) ErrorResponse {
+func MappingNotFound() ErrorResponse {
 	return ErrorResponse{
 		Status: 404,
-		Errors: []Error{
-			BuildError(lang, message.MappingNotFound, ErrorSource{Pointer: "/path"}),
-		},
+		Errors: []Error{{
+			Code:   "not_found",
+			Source: ErrorSource{Pointer: "/path"},
+		}},
 	}
 }
 
-func ResourceNotFound(lang, pointer string) ErrorResponse {
+func ResourceNotFound(id, pointer string) ErrorResponse {
 	return ErrorResponse{
 		Status: 404,
-		Errors: []Error{
-			BuildError(lang, message.ResourceNotFound, ErrorSource{Pointer: pointer}),
-		},
+		Errors: []Error{{
+			Id:     id,
+			Code:   "not_found",
+			Source: ErrorSource{Pointer: pointer},
+		}},
 	}
 }
 
-func InvalidBody(lang string) ErrorResponse {
+func InvalidBody() ErrorResponse {
 	return ErrorResponse{
 		Status: 400,
-		Errors: []Error{
-			BuildError(lang, message.RequestInvalid, ErrorSource{Pointer: "/body"}),
-		},
+		Errors: []Error{{
+			Code:   "request_invalid",
+			Source: ErrorSource{Pointer: "/body"},
+		}},
 	}
 }
 
-func InternalServer(lang string) ErrorResponse {
+func InternalServer() ErrorResponse {
 	return ErrorResponse{
 		Status: 500,
-		Errors: []Error{
-			BuildError(lang, message.ServerInternal, ErrorSource{Pointer: "/server/internal"}),
-		},
+		Errors: []Error{{
+			Code:   "server_error",
+			Source: ErrorSource{Pointer: "/server"},
+		}},
 	}
 }

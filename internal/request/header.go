@@ -1,12 +1,12 @@
 package request
 
-import "sst-go-template/internal/message"
+import "golang.org/x/text/language"
 
-func Language(headers map[string]string) string {
+func Language(headers map[string]string) language.Tag {
 	lang, ok := headers["accept-language"]
 	if !ok {
-		return message.DefaultLanguage
+		return language.English
 	}
 
-	return lang
+	return language.Make(lang)
 }

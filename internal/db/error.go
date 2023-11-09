@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"regexp"
-	"sst-go-template/internal/message"
 	"sst-go-template/internal/response"
 	"strings"
 
@@ -12,24 +11,24 @@ import (
 	"github.com/lib/pq"
 )
 
-func ParseError(lang string, err error) error {
+func ParseError(err error) error {
 	e := err.(*pq.Error)
 	switch e.Code {
 	case "23505":
-		return uniqueViolation(lang, e)
+		return uniqueViolation(e)
 	default:
-		log.Println(e.Code, e.Message)
-		return response.InternalServer(lang)
+		log.Println(e.Code, e.Message, e.Detail)
+		return response.InternalServer()
 	}
 }
 
-func uniqueViolation(lang string, e *pq.Error) error {
+func uniqueViolation(e *pq.Error) error {
 	field := e.Column
 	if field == "" {
 		regex, err := regexp.Compile(`Key \((?:lower\()?([a-zA-Z0-9, ]+)+(?:::text)?\)`)
 		if err != nil {
 			log.Println(err)
-			return response.InternalServer(lang)
+			return response.InternalServer()
 		}
 
 		match := regex.FindStringSubmatch(e.Detail)
@@ -38,14 +37,13 @@ func uniqueViolation(lang string, e *pq.Error) error {
 		field = split[len(split)-1]
 	}
 
-	pointer := fmt.Sprintf("/data/%s/%s", strcase.ToCamel(e.Table), strcase.ToLowerCamel(field))
+	pointer := fmt.Sprintf("/data/%s/%s", strcase.ToLowerCamel(e.Table), strcase.ToLowerCamel(field))
 	source := response.ErrorSource{Pointer: pointer}
-	field = strcase.ToDelimited(field, ' ')
-	field = strings.ToUpper(field[:1]) + field[1:]
 	return response.ErrorResponse{
 		Status: 409,
-		Errors: []response.Error{
-			response.BuildError(lang, message.ValidationDuplicate, source, field),
-		},
+		Errors: []response.Error{{
+			Code:   "duplicate",
+			Source: source,
+		}},
 	}
 }

@@ -10,26 +10,26 @@ import (
 )
 
 type Sample struct {
-	ID             int64               `json:"id"`
-	Name           string              `json:"name"`
-	Description    string              `json:"description"`
-	Amount         float32             `json:"amount"`
-	Translations   []SampleTranslation `json:"translations"`
-	CreatedAt      time.Time           `json:"createdAt"`
-	CreatedBy      string              `json:"createdBy"`
-	LastModifiedAt time.Time           `json:"lastModifiedAt"`
-	LastModifiedBy string              `json:"lastModifiedBy"`
+	ID             int64                `json:"id"`
+	Name           string               `json:"name"`
+	Description    string               `json:"description,omitempty"`
+	Amount         float64              `json:"amount"`
+	Translations   []*SampleTranslation `json:"translations"`
+	CreatedAt      time.Time            `json:"createdAt"`
+	CreatedBy      string               `json:"createdBy"`
+	LastModifiedAt time.Time            `json:"lastModifiedAt"`
+	LastModifiedBy string               `json:"lastModifiedBy"`
 }
 
 type SampleTranslation struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Language    string `json:"language"`
-	Ordinal     int8   `json:"ordinal"`
+	Name        string `json:"name" mod:"trim" validate:"required,max=100"`
+	Description string `json:"description,omitempty" mod:"trim" validate:"max=200"`
+	Language    string `json:"language" mod:"trim" validate:"len=2"`
+	Ordinal     int8   `json:"ordinal" validate:"min=1"`
 }
 
 type Repository interface {
-	save(ctx context.Context, tx *sql.Tx, lang string, s *Sample) error
+	save(ctx context.Context, tx *sql.Tx, s *Sample) error
 }
 
 type repository struct {
@@ -40,23 +40,23 @@ func NewRepository(conn *sql.DB) *repository {
 	return &repository{conn: conn}
 }
 
-func (r *repository) save(ctx context.Context, tx *sql.Tx, lang string, s *Sample) error {
+func (r *repository) save(ctx context.Context, tx *sql.Tx, s *Sample) error {
 	query := `INSERT INTO sample (name, description, amount, created_by, last_modified_by)
 	VALUES ($1, $2, $3, $4, $5)
 	RETURNING id, name, description, amount, created_at`
 	row := tx.QueryRowContext(ctx, query, s.Name, s.Description, s.Amount, s.CreatedBy, s.LastModifiedBy)
 	if err := row.Scan(&s.ID, &s.Name, &s.Description, &s.Amount, &s.CreatedAt); err != nil {
-		return db.ParseError(lang, err)
+		return db.ParseError(err)
 	}
 
-	if err := saveTranslations(ctx, tx, lang, s.ID, s.Translations); err != nil {
+	if err := saveTranslations(ctx, tx, s.ID, s.Translations); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func saveTranslations(ctx context.Context, tx *sql.Tx, lang string, id int64, st []SampleTranslation) error {
+func saveTranslations(ctx context.Context, tx *sql.Tx, id int64, st []*SampleTranslation) error {
 	if len(st) == 0 {
 		return nil
 	}
@@ -76,13 +76,13 @@ func saveTranslations(ctx context.Context, tx *sql.Tx, lang string, id int64, st
 	query = fmt.Sprintf(query, param)
 	rows, err := tx.QueryContext(ctx, query, args...)
 	if err != nil {
-		return db.ParseError(lang, err)
+		return db.ParseError(err)
 	}
 	defer rows.Close()
 
 	for i := 0; rows.Next(); i++ {
 		if err := rows.Scan(&st[i].Name, &st[i].Description, &st[i].Language, &st[i].Ordinal); err != nil {
-			return db.ParseError(lang, err)
+			return db.ParseError(err)
 		}
 	}
 

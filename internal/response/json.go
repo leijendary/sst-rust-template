@@ -31,14 +31,14 @@ func ErrorJSON(err error) (events.APIGatewayV2HTTPResponse, error) {
 	return JSON(e, e.Status)
 }
 
-func InvalidBodyJSON(lang string, err error) (events.APIGatewayV2HTTPResponse, error) {
+func InvalidBodyJSON(err error) (events.APIGatewayV2HTTPResponse, error) {
 	log.Println(err)
-	res := InvalidBody(lang)
+	res := InvalidBody()
 	return JSON(res, res.Status)
 }
 
-func ServerErrorJSON(lang string, err error) (events.APIGatewayV2HTTPResponse, error) {
+func ServerErrorJSON(err error) (events.APIGatewayV2HTTPResponse, error) {
 	log.Println(err)
-	res := InternalServer(lang)
+	res := InternalServer()
 	return JSON(res, res.Status)
 }

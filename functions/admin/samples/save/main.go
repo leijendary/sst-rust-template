@@ -20,15 +20,12 @@ var repo = sample.NewRepository(conn)
 var service = sample.NewService(repo)
 
 func handler(ctx context.Context, event events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-	var (
-		lang = request.Language(event.Headers)
-		req  = adminsample.SampleRequest{}
-	)
+	req := adminsample.SampleRequest{}
 	if err := json.Unmarshal([]byte(event.Body), &req); err != nil {
-		return response.InvalidBodyJSON(lang, err)
+		return response.InvalidBodyJSON(err)
 	}
 
-	if err := req.Validate(lang); err != nil {
+	if err := req.Validate(); err != nil {
 		return response.ErrorJSON(err)
 	}
 
@@ -41,7 +38,7 @@ func handler(ctx context.Context, event events.APIGatewayV2HTTPRequest) (events.
 		CreatedBy:      userId,
 		LastModifiedBy: userId,
 	}
-	if err := service.Create(ctx, lang, &s); err != nil {
+	if err := service.Create(ctx, &s); err != nil {
 		return response.ErrorJSON(err)
 	}
 
