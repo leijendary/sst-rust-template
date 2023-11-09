@@ -20,7 +20,7 @@ var repo = sample.NewRepository(conn)
 var service = sample.NewService(repo)
 
 func handler(ctx context.Context, event events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-	req := adminsample.SampleRequest{}
+	var req adminsample.SampleRequest
 	if err := json.Unmarshal([]byte(event.Body), &req); err != nil {
 		return response.InvalidBodyJSON(err)
 	}
@@ -34,7 +34,7 @@ func handler(ctx context.Context, event events.APIGatewayV2HTTPRequest) (events.
 		Name:           req.Name,
 		Description:    req.Description,
 		Amount:         req.Amount,
-		Translations:   req.Translations,
+		Translations:   req.Translations.ToDatabase(),
 		CreatedBy:      userId,
 		LastModifiedBy: userId,
 	}
@@ -47,7 +47,7 @@ func handler(ctx context.Context, event events.APIGatewayV2HTTPRequest) (events.
 		Name:         s.Name,
 		Description:  s.Description,
 		Amount:       s.Amount,
-		Translations: s.Translations,
+		Translations: adminsample.ToTranslationsResponse(s.Translations),
 		CreatedAt:    s.CreatedAt,
 	}
 	return response.JSON(res, 200)

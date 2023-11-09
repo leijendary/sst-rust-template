@@ -10,22 +10,22 @@ import (
 )
 
 type Sample struct {
-	ID             int64                `json:"id"`
-	Name           string               `json:"name"`
-	Description    string               `json:"description,omitempty"`
-	Amount         float64              `json:"amount"`
-	Translations   []*SampleTranslation `json:"translations"`
-	CreatedAt      time.Time            `json:"createdAt"`
-	CreatedBy      string               `json:"createdBy"`
-	LastModifiedAt time.Time            `json:"lastModifiedAt"`
-	LastModifiedBy string               `json:"lastModifiedBy"`
+	ID             int64
+	Name           string
+	Description    string
+	Amount         float64
+	Translations   []*SampleTranslation
+	CreatedAt      time.Time
+	CreatedBy      string
+	LastModifiedAt time.Time
+	LastModifiedBy string
 }
 
 type SampleTranslation struct {
-	Name        string `json:"name" mod:"trim" validate:"required,max=100"`
-	Description string `json:"description,omitempty" mod:"trim" validate:"max=200"`
-	Language    string `json:"language" mod:"trim" validate:"len=2"`
-	Ordinal     int8   `json:"ordinal" validate:"min=1"`
+	Name        string
+	Description string
+	Language    string
+	Ordinal     int8
 }
 
 type Repository interface {
@@ -49,11 +49,7 @@ func (r *repository) save(ctx context.Context, tx *sql.Tx, s *Sample) error {
 		return db.ParseError(err)
 	}
 
-	if err := saveTranslations(ctx, tx, s.ID, s.Translations); err != nil {
-		return err
-	}
-
-	return nil
+	return saveTranslations(ctx, tx, s.ID, s.Translations)
 }
 
 func saveTranslations(ctx context.Context, tx *sql.Tx, id int64, st []*SampleTranslation) error {
