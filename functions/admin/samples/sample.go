@@ -79,6 +79,5 @@ func ToTranslationsResponse(st []*sample.SampleTranslation) []*SampleTranslation
 		}
 		translations[i] = translation
 	}
-
 	return translations
 }

@@ -50,7 +50,7 @@ func handler(ctx context.Context, event events.APIGatewayV2HTTPRequest) (events.
 		Translations: adminsample.ToTranslationsResponse(s.Translations),
 		CreatedAt:    s.CreatedAt,
 	}
-	return response.JSON(res, 200)
+	return response.JSON(res, 201)
 }
 
 func main() {
