@@ -53,9 +53,8 @@ func (r *SampleRequest) Validate() error {
 
 func (st SampleTranslationRequests) ToDatabase() []*sample.SampleTranslation {
 	translations := make([]*sample.SampleTranslation, len(st))
-	var translation *sample.SampleTranslation
 	for i, v := range st {
-		translation = &sample.SampleTranslation{
+		translation := &sample.SampleTranslation{
 			Name:        v.Name,
 			Description: v.Description,
 			Language:    v.Language,
@@ -69,9 +68,8 @@ func (st SampleTranslationRequests) ToDatabase() []*sample.SampleTranslation {
 
 func ToTranslationsResponse(st []*sample.SampleTranslation) []*SampleTranslationResponse {
 	translations := make([]*SampleTranslationResponse, len(st))
-	var translation *SampleTranslationResponse
 	for i, v := range st {
-		translation = &SampleTranslationResponse{
+		translation := &SampleTranslationResponse{
 			Name:        v.Name,
 			Description: v.Description,
 			Language:    v.Language,

@@ -33,6 +33,8 @@ type SampleTranslation struct {
 type Repository interface {
 	save(ctx context.Context, tx *sql.Tx, s *Sample) error
 	get(ctx context.Context, id int64) (*Sample, error)
+	saveTranslations(ctx context.Context, tx *sql.Tx, id int64, ts []*SampleTranslation) error
+	getTranslations(ctx context.Context, id int64) ([]*SampleTranslation, error)
 }
 
 type repository struct {
@@ -52,7 +54,7 @@ func (r *repository) save(ctx context.Context, tx *sql.Tx, s *Sample) error {
 		return db.ParseError(err)
 	}
 
-	return saveTranslations(ctx, tx, s.ID, s.Translations)
+	return nil
 }
 
 func (r *repository) get(ctx context.Context, id int64) (*Sample, error) {
@@ -67,18 +69,11 @@ func (r *repository) get(ctx context.Context, id int64) (*Sample, error) {
 		return nil, db.ParseError(err)
 	}
 
-	st, err := getTranslations(ctx, r.conn, id)
-	if err != nil {
-		return nil, err
-	}
-
-	s.Translations = st
-
 	return &s, nil
 }
 
-func saveTranslations(ctx context.Context, tx *sql.Tx, id int64, st []*SampleTranslation) error {
-	if len(st) == 0 {
+func (r *repository) saveTranslations(ctx context.Context, tx *sql.Tx, id int64, ts []*SampleTranslation) error {
+	if len(ts) == 0 {
 		return nil
 	}
 
@@ -87,7 +82,7 @@ func saveTranslations(ctx context.Context, tx *sql.Tx, id int64, st []*SampleTra
 	RETURNING name, description, language, ordinal`
 	params := []string{}
 	args := []any{}
-	for i, v := range st {
+	for i, v := range ts {
 		param := fmt.Sprintf("($%d, $%d, $%d, $%d, $%d)", i*5+1, i*5+2, i*5+3, i*5+4, i*5+5)
 		params = append(params, param)
 		args = append(args, id, v.Name, v.Description, v.Language, v.Ordinal)
@@ -102,7 +97,7 @@ func saveTranslations(ctx context.Context, tx *sql.Tx, id int64, st []*SampleTra
 	defer rows.Close()
 
 	for i := 0; rows.Next(); i++ {
-		if err := rows.Scan(&st[i].Name, &st[i].Description, &st[i].Language, &st[i].Ordinal); err != nil {
+		if err := rows.Scan(&ts[i].Name, &ts[i].Description, &ts[i].Language, &ts[i].Ordinal); err != nil {
 			return db.ParseError(err)
 		}
 	}
@@ -110,22 +105,22 @@ func saveTranslations(ctx context.Context, tx *sql.Tx, id int64, st []*SampleTra
 	return nil
 }
 
-func getTranslations(ctx context.Context, conn *sql.DB, id int64) ([]*SampleTranslation, error) {
+func (r *repository) getTranslations(ctx context.Context, id int64) ([]*SampleTranslation, error) {
 	query := `SELECT name, description, language, ordinal FROM sample_translation where id = $1`
-	rows, err := conn.QueryContext(ctx, query, id)
+	rows, err := r.conn.QueryContext(ctx, query, id)
 	if err != nil {
 		return nil, db.ParseError(err)
 	}
 	defer rows.Close()
 
-	st := []*SampleTranslation{}
-	var t SampleTranslation
-	for i := 0; rows.Next(); i++ {
+	ts := []*SampleTranslation{}
+	for rows.Next() {
+		t := SampleTranslation{}
 		if err := rows.Scan(&t.Name, &t.Description, &t.Language, &t.Ordinal); err != nil {
 			return nil, db.ParseError(err)
 		}
-		st = append(st, &t)
+		ts = append(ts, &t)
 	}
 
-	return st, nil
+	return ts, nil
 }

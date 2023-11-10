@@ -30,9 +30,26 @@ func (svc *service) Create(ctx context.Context, s *Sample) error {
 		return err
 	}
 
+	err = svc.repo.saveTranslations(ctx, tx, s.ID, s.Translations)
+	if err != nil {
+		return err
+	}
+
 	return db.Commit(tx)
 }
 
 func (svc *service) Get(ctx context.Context, id int64) (*Sample, error) {
-	return svc.repo.get(ctx, id)
+	s, err := svc.repo.get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	ts, err := svc.repo.getTranslations(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	s.Translations = ts
+
+	return s, nil
 }
