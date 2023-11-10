@@ -13,6 +13,10 @@ export default {
     };
   },
   stacks(app) {
+    if (app.stage === "dev") {
+      app.setDefaultRemovalPolicy("destroy");
+    }
+
     app.setDefaultFunctionProps({
       architecture: "arm_64",
       logRetention: app.stage === "prod" ? "three_months" : "one_week",
