@@ -26,9 +26,10 @@ func Validate(v interface{}) error {
 		return nil
 	}
 
-	ve := err.(validator.ValidationErrors)
-	errors := make([]response.Error, len(ve))
 	var (
+		status    = 400
+		ve        = err.(validator.ValidationErrors)
+		errors    = make([]response.Error, len(ve))
 		pointer   string
 		meta      map[string]any
 		namespace []string
@@ -51,6 +52,7 @@ func Validate(v interface{}) error {
 
 		if len(v.Param()) > 0 {
 			if v.Tag() == "unique" {
+				status = 409
 				pointer += "/" + strcase.ToLowerCamel(v.Param())
 			} else {
 				meta[v.Tag()] = strcase.ToLowerCamel(v.Param())
@@ -67,7 +69,7 @@ func Validate(v interface{}) error {
 	}
 
 	return response.ErrorResponse{
-		Status: 400,
+		Status: status,
 		Errors: errors,
 	}
 }
