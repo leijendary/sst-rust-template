@@ -26,7 +26,7 @@ export function AdminApiStack({ stack }: StackContext) {
       "POST /api/admin/samples": "functions/api/admin/samples/save",
       $default: {
         authorizer: "none",
-        function: "functions/default.go",
+        function: "functions/api/default.go",
       },
     },
   });

@@ -22,11 +22,9 @@ export function CustomerApiStack({ stack }: StackContext) {
       },
     },
     routes: {
-      "GET /api/v1/samples": "functions/v1/samples/get",
-      "POST /api/v1/samples": "functions/v1/samples/save",
       $default: {
         authorizer: "none",
-        function: "functions/default.go",
+        function: "functions/api/default.go",
       },
     },
   });
