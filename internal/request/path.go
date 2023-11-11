@@ -6,12 +6,12 @@ import (
 )
 
 func PathParamInt64(params map[string]string, k string) (int64, error) {
-	p := params[k]
-	if len(p) == 0 {
+	param := params[k]
+	if len(param) == 0 {
 		return -1, response.MappingNotFound()
 	}
 
-	i, err := strconv.ParseInt(p, 10, 0)
+	value, err := strconv.ParseInt(param, 10, 0)
 	if err != nil {
 		return -1, response.ErrorResponse{
 			Status: 400,
@@ -27,5 +27,5 @@ func PathParamInt64(params map[string]string, k string) (int64, error) {
 		}
 	}
 
-	return i, nil
+	return value, nil
 }
