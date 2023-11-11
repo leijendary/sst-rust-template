@@ -20,6 +20,9 @@ func PathParamInt64(params map[string]string, k string) (int64, error) {
 				Source: response.ErrorSource{
 					Parameter: k,
 				},
+				Meta: map[string]any{
+					"type": "int",
+				},
 			}},
 		}
 	}
