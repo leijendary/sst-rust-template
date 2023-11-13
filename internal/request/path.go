@@ -5,8 +5,8 @@ import (
 	"strconv"
 )
 
-func PathParamInt64(params map[string]string, k string) (int64, error) {
-	param := params[k]
+func PathParamInt64(params map[string]string, key string) (int64, error) {
+	param := params[key]
 	if len(param) == 0 {
 		return -1, response.MappingNotFound()
 	}
@@ -18,7 +18,7 @@ func PathParamInt64(params map[string]string, k string) (int64, error) {
 			Errors: []response.Error{{
 				Code: "param_invalid",
 				Source: response.ErrorSource{
-					Parameter: k,
+					Parameter: key,
 				},
 				Meta: map[string]any{
 					"type": "int",
