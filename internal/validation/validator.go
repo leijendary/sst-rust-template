@@ -27,28 +27,23 @@ func Validate(v interface{}) error {
 	}
 
 	var (
-		status    = 400
-		ve        = err.(validator.ValidationErrors)
-		errors    = make([]response.Error, len(ve))
-		pointer   string
-		meta      map[string]any
-		namespace []string
-		fields    []string
-		field     string
+		status = 400
+		ve     = err.(validator.ValidationErrors)
+		errors = make([]response.Error, len(ve))
 	)
 	for i, v := range ve {
-		meta = map[string]any{}
-		namespace = strings.Split(v.Namespace(), ".")[1:]
-		fields = []string{}
+		meta := map[string]any{}
+		namespace := strings.Split(v.Namespace(), ".")[1:]
+		var fields []string
 		for _, ns := range namespace {
 			ns = strings.Replace(ns, "[", "/", 1)
 			ns = strings.Replace(ns, "]", "", 1)
 			fields = append(fields, ns)
 		}
 
-		field = strings.Join(fields, "/")
+		field := strings.Join(fields, "/")
 		field = strcase.ToDelimited(field, '/')
-		pointer = "/body/" + field
+		pointer := "/body/" + field
 
 		if len(v.Param()) > 0 {
 			if v.Tag() == "unique" {

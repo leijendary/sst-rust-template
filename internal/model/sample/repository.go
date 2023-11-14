@@ -80,8 +80,8 @@ func (r *repository) saveTranslations(ctx context.Context, tx *sql.Tx, id int64,
 	query := `INSERT INTO sample_translation (id, name, description, language, ordinal)
 	VALUES %s
 	RETURNING name, description, language, ordinal`
-	params := []string{}
-	args := []any{}
+	var params []string
+	var args []any
 	for i, v := range ts {
 		param := fmt.Sprintf("($%d, $%d, $%d, $%d, $%d)", i*5+1, i*5+2, i*5+3, i*5+4, i*5+5)
 		params = append(params, param)
@@ -113,9 +113,9 @@ func (r *repository) getTranslations(ctx context.Context, id int64) ([]*SampleTr
 	}
 	defer rows.Close()
 
-	ts := []*SampleTranslation{}
+	var ts []*SampleTranslation
 	for rows.Next() {
-		t := SampleTranslation{}
+		var t SampleTranslation
 		if err := rows.Scan(&t.Name, &t.Description, &t.Language, &t.Ordinal); err != nil {
 			return nil, db.ParseError(err)
 		}
