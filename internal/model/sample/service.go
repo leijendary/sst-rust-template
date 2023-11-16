@@ -24,6 +24,7 @@ func (svc *service) Create(ctx context.Context, s *Sample) error {
 	if err != nil {
 		return err
 	}
+	defer tx.Rollback()
 
 	err = svc.repo.save(ctx, tx, s)
 	if err != nil {
