@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	jsonHeaders = map[string]string{
+	JsonHeaders = map[string]string{
 		"content-type": "application/json",
 	}
 )
@@ -22,7 +22,7 @@ func JSON(v any, status int) (events.APIGatewayV2HTTPResponse, error) {
 	return events.APIGatewayV2HTTPResponse{
 		Body:       string(b),
 		StatusCode: status,
-		Headers:    jsonHeaders,
+		Headers:    JsonHeaders,
 	}, nil
 }
 
