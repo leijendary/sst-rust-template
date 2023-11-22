@@ -58,7 +58,9 @@ func (r *repository) save(ctx context.Context, tx *sql.Tx, s *Sample) error {
 }
 
 func (r *repository) get(ctx context.Context, id int64) (*Sample, error) {
-	query := `SELECT id, name, description, amount, version, created_at FROM sample WHERE id = $1 and deleted_at is null`
+	query := `SELECT id, name, description, amount, version, created_at
+	FROM sample
+	WHERE id = $1 and deleted_at is null`
 	row := r.conn.QueryRowContext(ctx, query, id)
 	var s Sample
 	if err := row.Scan(&s.ID, &s.Name, &s.Description, &s.Amount, &s.Version, &s.CreatedAt); err != nil {
