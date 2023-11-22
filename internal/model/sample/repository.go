@@ -108,7 +108,9 @@ func (r *repository) saveTranslations(ctx context.Context, tx *sql.Tx, id int64,
 }
 
 func (r *repository) getTranslations(ctx context.Context, id int64) ([]*SampleTranslation, error) {
-	query := `SELECT name, description, language, ordinal FROM sample_translation where id = $1`
+	query := `SELECT name, description, language, ordinal
+	FROM sample_translation
+	WHERE id = $1`
 	rows, err := r.conn.QueryContext(ctx, query, id)
 	if err != nil {
 		return nil, db.ParseError(err)
