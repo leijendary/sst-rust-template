@@ -30,7 +30,7 @@ type SampleResponse struct {
 	Description    *string                      `json:"description,omitempty"`
 	Amount         int32                        `json:"amount"`
 	Version        int8                         `json:"version"`
-	Translations   []*SampleTranslationResponse `json:"translations"`
+	Translations   []*SampleTranslationResponse `json:"translations,omitempty"`
 	CreatedAt      time.Time                    `json:"createdAt"`
 	CreatedBy      string                       `json:"createdBy"`
 	LastModifiedAt time.Time                    `json:"lastModifiedAt"`
