@@ -7,11 +7,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 )
 
-var (
-	JsonHeaders = map[string]string{
-		"Content-Type": "application/json",
-	}
-)
+var headers = map[string]string{"content-type": "application/json"}
 
 func JSON(v any, status int) (events.APIGatewayV2HTTPResponse, error) {
 	b, err := json.Marshal(v)
@@ -22,7 +18,15 @@ func JSON(v any, status int) (events.APIGatewayV2HTTPResponse, error) {
 	return events.APIGatewayV2HTTPResponse{
 		Body:       string(b),
 		StatusCode: status,
-		Headers:    JsonHeaders,
+		Headers:    headers,
+	}, nil
+}
+
+func NoContent() (events.APIGatewayV2HTTPResponse, error) {
+	return events.APIGatewayV2HTTPResponse{
+		Body:       "",
+		StatusCode: 204,
+		Headers:    headers,
 	}, nil
 }
 

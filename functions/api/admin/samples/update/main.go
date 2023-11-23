@@ -20,7 +20,7 @@ var repo = sample.NewRepository(conn)
 var service = sample.NewService(repo)
 
 func handler(ctx context.Context, event events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-	id, err := request.PathParamInt64(event.PathParameters, "id")
+	id, err := request.GetPathInt64(event.PathParameters, "id")
 	if err != nil {
 		return response.ErrorJSON(err)
 	}
@@ -34,7 +34,7 @@ func handler(ctx context.Context, event events.APIGatewayV2HTTPRequest) (events.
 		return response.ErrorJSON(err)
 	}
 
-	userId := request.UserID(event.RequestContext.Authorizer)
+	userId := request.GetUserID(event.RequestContext.Authorizer)
 	s := sample.Sample{
 		Name:           req.Name,
 		Description:    req.Description,

@@ -39,6 +39,7 @@ type Repository interface {
 	save(ctx context.Context, tx *sql.Tx, s *Sample) error
 	get(ctx context.Context, id int64) (*Sample, error)
 	update(ctx context.Context, tx *sql.Tx, id int64, s *Sample) error
+	delete(ctx context.Context, u string, id int64, v int8) error
 	saveTranslations(ctx context.Context, tx *sql.Tx, id int64, ts []*SampleTranslation) error
 	getTranslations(ctx context.Context, id int64) ([]*SampleTranslation, error)
 	updateTranslations(ctx context.Context, tx *sql.Tx, id int64, ts []*SampleTranslation) error
@@ -116,15 +117,16 @@ func (repo *repository) get(ctx context.Context, id int64) (*Sample, error) {
 }
 
 func (*repository) update(ctx context.Context, tx *sql.Tx, id int64, s *Sample) error {
-	const query = `UPDATE sample SET
+	const query = `UPDATE sample
+	SET
 		name = $3,
 		description = $4,
 		amount = $5,
 		version = version + 1,
 		last_modified_at = now(),
 		last_modified_by = $6
-		WHERE id = $1 AND version = $2
-		RETURNING id, name, description, amount, version, created_at, created_by, last_modified_at, last_modified_by`
+	WHERE id = $1 AND version = $2
+	RETURNING id, name, description, amount, version, created_at, created_by, last_modified_at, last_modified_by`
 	row := tx.QueryRowContext(ctx, query, id, s.Version, s.Name, s.Description, s.Amount, s.LastModifiedBy)
 	if err := row.Scan(&s.ID, &s.Name, &s.Description, &s.Amount, &s.Version, &s.CreatedAt, &s.CreatedBy, &s.LastModifiedAt, &s.LastModifiedBy); err != nil {
 		if err == sql.ErrNoRows {
@@ -132,6 +134,30 @@ func (*repository) update(ctx context.Context, tx *sql.Tx, id int64, s *Sample) 
 		}
 
 		return db.ParseError(err)
+	}
+
+	return nil
+}
+
+func (repo *repository) delete(ctx context.Context, u string, id int64, v int8) error {
+	const query = `UPDATE sample
+	SET
+		version = version + 1,
+		deleted_by = $3,
+		deleted_at = now()
+	WHERE id = $1 AND version = $2`
+	row, err := repo.conn.ExecContext(ctx, query, id, v, u)
+	if err != nil {
+		return db.ParseError(err)
+	}
+
+	count, err := row.RowsAffected()
+	if err != nil {
+		return db.ParseError(err)
+	}
+
+	if count == 0 {
+		return response.VersionConflict(id, "/data/sample", v)
 	}
 
 	return nil

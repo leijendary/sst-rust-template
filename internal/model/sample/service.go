@@ -11,6 +11,7 @@ type Service interface {
 	Create(ctx context.Context, s *Sample) error
 	Get(ctx context.Context, id int64) (*Sample, error)
 	Update(ctx context.Context, id int64, s *Sample) error
+	Delete(ctx context.Context, u string, id int64, v int8) error
 }
 
 type service struct {
@@ -89,4 +90,8 @@ func (svc *service) Update(ctx context.Context, id int64, s *Sample) error {
 	}
 
 	return db.Commit(tx)
+}
+
+func (svc *service) Delete(ctx context.Context, u string, id int64, v int8) error {
+	return svc.repo.delete(ctx, u, id, v)
 }

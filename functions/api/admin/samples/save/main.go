@@ -29,7 +29,7 @@ func handler(ctx context.Context, event events.APIGatewayV2HTTPRequest) (events.
 		return response.ErrorJSON(err)
 	}
 
-	userId := request.UserID(event.RequestContext.Authorizer)
+	userId := request.GetUserID(event.RequestContext.Authorizer)
 	s := sample.Sample{
 		Name:           req.Name,
 		Description:    req.Description,

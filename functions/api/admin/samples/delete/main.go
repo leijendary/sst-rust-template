@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	adminsample "sst-go-template/functions/api/admin/samples"
 	"sst-go-template/internal/db"
 	"sst-go-template/internal/model/sample"
 	"sst-go-template/internal/request"
@@ -24,26 +23,21 @@ func handler(ctx context.Context, event events.APIGatewayV2HTTPRequest) (events.
 		return response.ErrorJSON(err)
 	}
 
-	s, err := service.Get(ctx, id)
+	v, err := request.GetVersion(event.QueryStringParameters)
 	if err != nil {
 		return response.ErrorJSON(err)
 	}
 
-	res := adminsample.SampleResponse{
-		ID:             s.ID,
-		Name:           s.Name,
-		Description:    s.Description,
-		Amount:         s.Amount,
-		Version:        s.Version,
-		Translations:   adminsample.ToTranslationsResponse(s.Translations),
-		CreatedAt:      s.CreatedAt,
-		CreatedBy:      s.CreatedBy,
-		LastModifiedAt: s.LastModifiedAt,
-		LastModifiedBy: s.LastModifiedBy,
+	userId := request.GetUserID(event.RequestContext.Authorizer)
+	if err := service.Delete(ctx, userId, id, v); err != nil {
+		return response.ErrorJSON(err)
 	}
-	return response.JSON(res, 200)
+
+	return response.NoContent()
 }
 
 func main() {
+	defer conn.Close()
+
 	lambda.Start(handler)
 }

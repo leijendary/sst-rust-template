@@ -2,7 +2,7 @@ package request
 
 import "golang.org/x/text/language"
 
-func Language(headers map[string]string) language.Tag {
+func GetLanguage(headers map[string]string) language.Tag {
 	lang, ok := headers["accept-language"]
 	if !ok {
 		return language.English
