@@ -25,7 +25,7 @@ func handler(ctx context.Context, event events.APIGatewayV2HTTPRequest) (events.
 		return response.InvalidBodyJSON(err)
 	}
 
-	if err := req.Validate(); err != nil {
+	if err := req.Validate(ctx); err != nil {
 		return response.ErrorJSON(err)
 	}
 
@@ -43,12 +43,15 @@ func handler(ctx context.Context, event events.APIGatewayV2HTTPRequest) (events.
 	}
 
 	res := &adminsample.SampleResponse{
-		ID:           s.ID,
-		Name:         s.Name,
-		Description:  s.Description,
-		Amount:       s.Amount,
-		Translations: adminsample.ToTranslationsResponse(s.Translations),
-		CreatedAt:    s.CreatedAt,
+		ID:             s.ID,
+		Name:           s.Name,
+		Description:    s.Description,
+		Amount:         s.Amount,
+		Translations:   adminsample.ToTranslationsResponse(s.Translations),
+		CreatedAt:      s.CreatedAt,
+		CreatedBy:      s.CreatedBy,
+		LastModifiedAt: s.LastModifiedAt,
+		LastModifiedBy: s.LastModifiedBy,
 	}
 	return response.JSON(res, 201)
 }

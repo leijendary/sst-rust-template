@@ -3,10 +3,11 @@ package sample
 import (
 	"context"
 	"sst-go-template/internal/db"
+	"sst-go-template/internal/request"
 )
 
 type Service interface {
-	List(ctx context.Context, lang, query string) (*[]Sample, error)
+	List(ctx context.Context, q string, p request.Pagination) ([]*Sample, int, error)
 	Create(ctx context.Context, s *Sample) error
 	Get(ctx context.Context, id int64) (*Sample, error)
 }
@@ -16,7 +17,21 @@ type service struct {
 }
 
 func NewService(repo *repository) *service {
-	return &service{repo: repo}
+	return &service{repo}
+}
+
+func (svc *service) List(ctx context.Context, q string, p request.Pagination) ([]*Sample, int, error) {
+	list, err := svc.repo.list(context.Background(), q, p)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	count, err := svc.repo.count(context.Background(), q)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return list, count, nil
 }
 
 func (svc *service) Create(ctx context.Context, s *Sample) error {

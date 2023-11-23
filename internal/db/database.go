@@ -57,6 +57,5 @@ func Connect(client *ssm.Client) *sql.DB {
 	if err != nil {
 		panic(err)
 	}
-
 	return db
 }

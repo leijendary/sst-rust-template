@@ -9,7 +9,7 @@ import (
 
 var (
 	JsonHeaders = map[string]string{
-		"content-type": "application/json",
+		"Content-Type": "application/json",
 	}
 )
 

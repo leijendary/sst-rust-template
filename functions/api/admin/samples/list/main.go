@@ -4,6 +4,7 @@ import (
 	"context"
 	adminsample "sst-go-template/functions/api/admin/samples"
 	"sst-go-template/internal/db"
+	"sst-go-template/internal/model"
 	"sst-go-template/internal/model/sample"
 	"sst-go-template/internal/request"
 	"sst-go-template/internal/response"
@@ -19,27 +20,21 @@ var repo = sample.NewRepository(conn)
 var service = sample.NewService(repo)
 
 func handler(ctx context.Context, event events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-	i, err := request.PathParamInt64(event.PathParameters, "id")
+	var (
+		params = event.QueryStringParameters
+		q      = params["query"]
+		p      = request.GetPagination(params)
+	)
+	list, total, err := service.List(ctx, q, p)
 	if err != nil {
 		return response.ErrorJSON(err)
 	}
 
-	s, err := service.Get(ctx, i)
-	if err != nil {
-		return response.ErrorJSON(err)
-	}
-
-	res := adminsample.SampleResponse{
-		ID:             s.ID,
-		Name:           s.Name,
-		Description:    s.Description,
-		Amount:         s.Amount,
-		Version:        s.Version,
-		Translations:   adminsample.ToTranslationsResponse(s.Translations),
-		CreatedAt:      s.CreatedAt,
-		CreatedBy:      s.CreatedBy,
-		LastModifiedAt: s.LastModifiedAt,
-		LastModifiedBy: s.LastModifiedBy,
+	res := model.Page[adminsample.SampleResponse]{
+		Data:  adminsample.ToListResponse(list),
+		Page:  p.Page,
+		Size:  p.Size,
+		Total: total,
 	}
 	return response.JSON(res, 200)
 }

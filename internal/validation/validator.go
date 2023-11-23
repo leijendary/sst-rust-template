@@ -15,8 +15,8 @@ var (
 	validate = validator.New(validator.WithRequiredStructEnabled())
 )
 
-func Validate(v interface{}) error {
-	err := conform.Struct(context.Background(), v)
+func Validate(ctx context.Context, v interface{}) error {
+	err := conform.Struct(ctx, v)
 	if err != nil {
 		return response.InternalServer()
 	}

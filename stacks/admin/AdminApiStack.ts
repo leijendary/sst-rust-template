@@ -22,6 +22,7 @@ export function AdminApiStack({ stack }: StackContext) {
       },
     },
     routes: {
+      "GET /api/admin/samples": "functions/api/admin/samples/list",
       "GET /api/admin/samples/{id}": "functions/api/admin/samples/get",
       "POST /api/admin/samples": "functions/api/admin/samples/save",
       $default: {

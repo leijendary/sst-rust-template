@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"sst-go-template/internal/db"
+	"sst-go-template/internal/request"
 	"sst-go-template/internal/response"
 	"strings"
 	"time"
@@ -13,8 +14,8 @@ import (
 type Sample struct {
 	ID             int64
 	Name           string
-	Description    string
-	Amount         float64
+	Description    *string
+	Amount         int32
 	Version        int8
 	Translations   []*SampleTranslation
 	CreatedAt      time.Time
@@ -25,12 +26,14 @@ type Sample struct {
 
 type SampleTranslation struct {
 	Name        string
-	Description string
+	Description *string
 	Language    string
 	Ordinal     int8
 }
 
 type Repository interface {
+	list(ctx context.Context, q string, p request.Pagination) ([]*Sample, error)
+	count(ctx context.Context, q string) (int, error)
 	save(ctx context.Context, tx *sql.Tx, s *Sample) error
 	get(ctx context.Context, id int64) (*Sample, error)
 	saveTranslations(ctx context.Context, tx *sql.Tx, id int64, ts []*SampleTranslation) error
@@ -42,39 +45,73 @@ type repository struct {
 }
 
 func NewRepository(conn *sql.DB) *repository {
-	return &repository{conn: conn}
+	return &repository{conn}
 }
 
-func (r *repository) save(ctx context.Context, tx *sql.Tx, s *Sample) error {
+func (repo *repository) list(ctx context.Context, q string, p request.Pagination) ([]*Sample, error) {
+	query := `SELECT id, name, description, amount, version, created_at, created_by, last_modified_at, last_modified_by
+	FROM sample
+	WHERE name ILIKE CONCAT('%%', $1::text, '%%') AND deleted_at IS NULL
+	LIMIT $2
+	OFFSET $3`
+	rows, err := repo.conn.QueryContext(ctx, query, q, p.Size, p.Offset)
+	if err != nil {
+		return nil, db.ParseError(err)
+	}
+	defer rows.Close()
+
+	var ss []*Sample
+	for i := 0; rows.Next(); i++ {
+		var s Sample
+		if err := rows.Scan(&s.ID, &s.Name, &s.Description, &s.Amount, &s.Version, &s.CreatedAt, &s.CreatedBy, &s.LastModifiedAt, &s.LastModifiedBy); err != nil {
+			return nil, db.ParseError(err)
+		}
+		ss = append(ss, &s)
+	}
+	return ss, nil
+}
+
+func (repo *repository) count(ctx context.Context, q string) (int, error) {
+	query := `SELECT count(*)
+	FROM sample
+	WHERE name ILIKE CONCAT('%%', $1::text, '%%') AND deleted_at IS NULL`
+	row := repo.conn.QueryRowContext(ctx, query, q)
+	var count int
+	if err := row.Scan(&count); err != nil {
+		return 0, db.ParseError(err)
+	}
+	return count, nil
+}
+
+func (*repository) save(ctx context.Context, tx *sql.Tx, s *Sample) error {
 	query := `INSERT INTO sample (name, description, amount, created_by, last_modified_by)
 	VALUES ($1, $2, $3, $4, $5)
-	RETURNING id, name, description, amount, created_at`
+	RETURNING id, name, description, amount, version, created_at, created_by, last_modified_at, last_modified_by`
 	row := tx.QueryRowContext(ctx, query, s.Name, s.Description, s.Amount, s.CreatedBy, s.LastModifiedBy)
-	if err := row.Scan(&s.ID, &s.Name, &s.Description, &s.Amount, &s.CreatedAt); err != nil {
+	if err := row.Scan(&s.ID, &s.Name, &s.Description, &s.Amount, &s.Version, &s.CreatedAt, &s.CreatedBy, &s.LastModifiedAt, &s.LastModifiedBy); err != nil {
 		return db.ParseError(err)
 	}
 
 	return nil
 }
 
-func (r *repository) get(ctx context.Context, id int64) (*Sample, error) {
-	query := `SELECT id, name, description, amount, version, created_at
+func (repo *repository) get(ctx context.Context, id int64) (*Sample, error) {
+	query := `SELECT id, name, description, amount, version, created_at, created_by, last_modified_at, last_modified_by
 	FROM sample
-	WHERE id = $1 and deleted_at is null`
-	row := r.conn.QueryRowContext(ctx, query, id)
+	WHERE id = $1 AND deleted_at IS NULL`
+	row := repo.conn.QueryRowContext(ctx, query, id)
 	var s Sample
-	if err := row.Scan(&s.ID, &s.Name, &s.Description, &s.Amount, &s.Version, &s.CreatedAt); err != nil {
+	if err := row.Scan(&s.ID, &s.Name, &s.Description, &s.Amount, &s.Version, &s.CreatedAt, &s.CreatedBy, &s.LastModifiedAt, &s.LastModifiedBy); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, response.ResourceNotFound(id, "/data/sample")
 		}
 
 		return nil, db.ParseError(err)
 	}
-
 	return &s, nil
 }
 
-func (r *repository) saveTranslations(ctx context.Context, tx *sql.Tx, id int64, ts []*SampleTranslation) error {
+func (*repository) saveTranslations(ctx context.Context, tx *sql.Tx, id int64, ts []*SampleTranslation) error {
 	if len(ts) == 0 {
 		return nil
 	}
@@ -107,11 +144,11 @@ func (r *repository) saveTranslations(ctx context.Context, tx *sql.Tx, id int64,
 	return nil
 }
 
-func (r *repository) getTranslations(ctx context.Context, id int64) ([]*SampleTranslation, error) {
+func (repo *repository) getTranslations(ctx context.Context, id int64) ([]*SampleTranslation, error) {
 	query := `SELECT name, description, language, ordinal
 	FROM sample_translation
 	WHERE id = $1`
-	rows, err := r.conn.QueryContext(ctx, query, id)
+	rows, err := repo.conn.QueryContext(ctx, query, id)
 	if err != nil {
 		return nil, db.ParseError(err)
 	}
@@ -125,6 +162,5 @@ func (r *repository) getTranslations(ctx context.Context, id int64) ([]*SampleTr
 		}
 		ts = append(ts, &t)
 	}
-
 	return ts, nil
 }
