@@ -67,7 +67,6 @@ func (st SampleTranslationRequests) ToDatabase() []*sample.SampleTranslation {
 		}
 		translations[i] = translation
 	}
-
 	return translations
 }
 
