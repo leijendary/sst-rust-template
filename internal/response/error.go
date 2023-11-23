@@ -47,6 +47,18 @@ func ResourceNotFound(id any, pointer string) ErrorResponse {
 	}
 }
 
+func VersionConflict(id any, pointer string, version int8) ErrorResponse {
+	return ErrorResponse{
+		Status: 409,
+		Errors: []Error{{
+			Id:     fmt.Sprintf("%#v", id),
+			Code:   "version_conflict",
+			Source: ErrorSource{Pointer: pointer},
+			Meta:   map[string]any{"version": version},
+		}},
+	}
+}
+
 func InvalidBody() ErrorResponse {
 	return ErrorResponse{
 		Status: 400,

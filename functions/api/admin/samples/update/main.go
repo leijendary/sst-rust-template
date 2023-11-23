@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	adminsample "sst-go-template/functions/api/admin/samples"
 	"sst-go-template/internal/db"
 	"sst-go-template/internal/model/sample"
@@ -24,12 +25,29 @@ func handler(ctx context.Context, event events.APIGatewayV2HTTPRequest) (events.
 		return response.ErrorJSON(err)
 	}
 
-	s, err := service.Get(ctx, id)
-	if err != nil {
+	var req adminsample.SampleRequest
+	if err := json.Unmarshal([]byte(event.Body), &req); err != nil {
+		return response.InvalidBodyJSON(err)
+	}
+
+	if err := req.Validate(ctx); err != nil {
 		return response.ErrorJSON(err)
 	}
 
-	res := adminsample.SampleResponse{
+	userId := request.UserID(event.RequestContext.Authorizer)
+	s := sample.Sample{
+		Name:           req.Name,
+		Description:    req.Description,
+		Amount:         req.Amount,
+		Version:        req.Version,
+		Translations:   req.Translations.ToDatabase(),
+		LastModifiedBy: userId,
+	}
+	if err := service.Update(ctx, id, &s); err != nil {
+		return response.ErrorJSON(err)
+	}
+
+	res := &adminsample.SampleResponse{
 		ID:             s.ID,
 		Name:           s.Name,
 		Description:    s.Description,
@@ -41,9 +59,11 @@ func handler(ctx context.Context, event events.APIGatewayV2HTTPRequest) (events.
 		LastModifiedAt: s.LastModifiedAt,
 		LastModifiedBy: s.LastModifiedBy,
 	}
-	return response.JSON(res, 200)
+	return response.JSON(res, 201)
 }
 
 func main() {
+	defer conn.Close()
+
 	lambda.Start(handler)
 }

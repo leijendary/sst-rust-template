@@ -11,6 +11,7 @@ type SampleRequest struct {
 	Name         string                    `json:"name" mod:"trim" validate:"required,max=100"`
 	Description  *string                   `json:"description" mod:"trim"`
 	Amount       int32                     `json:"amount" validate:"required,min=1,max=999999999"`
+	Version      int8                      `json:"version" validate:"min=0"`
 	Translations SampleTranslationRequests `json:"translations" validate:"min=1,unique=Language,unique=Ordinal,dive"`
 }
 

@@ -10,6 +10,7 @@ type Service interface {
 	List(ctx context.Context, q string, p request.Pagination) ([]*Sample, int, error)
 	Create(ctx context.Context, s *Sample) error
 	Get(ctx context.Context, id int64) (*Sample, error)
+	Update(ctx context.Context, id int64, s *Sample) error
 }
 
 type service struct {
@@ -68,4 +69,24 @@ func (svc *service) Get(ctx context.Context, id int64) (*Sample, error) {
 	s.Translations = ts
 
 	return s, nil
+}
+
+func (svc *service) Update(ctx context.Context, id int64, s *Sample) error {
+	tx, err := db.BeginTx(ctx, svc.repo.conn)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	err = svc.repo.update(ctx, tx, id, s)
+	if err != nil {
+		return err
+	}
+
+	err = svc.repo.updateTranslations(ctx, tx, s.ID, s.Translations)
+	if err != nil {
+		return err
+	}
+
+	return db.Commit(tx)
 }

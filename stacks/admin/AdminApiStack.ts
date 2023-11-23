@@ -25,6 +25,7 @@ export function AdminApiStack({ stack }: StackContext) {
       "GET /api/admin/samples": "functions/api/admin/samples/list",
       "GET /api/admin/samples/{id}": "functions/api/admin/samples/get",
       "POST /api/admin/samples": "functions/api/admin/samples/save",
+      "PUT /api/admin/samples/{id}": "functions/api/admin/samples/update",
       $default: {
         authorizer: "none",
         function: "functions/api/default.go",

@@ -55,11 +55,9 @@ func Validate(ctx context.Context, v interface{}) error {
 		}
 
 		errors[i] = response.Error{
-			Code: v.Tag(),
-			Source: response.ErrorSource{
-				Pointer: pointer,
-			},
-			Meta: meta,
+			Code:   v.Tag(),
+			Source: response.ErrorSource{Pointer: pointer},
+			Meta:   meta,
 		}
 	}
 
