@@ -146,12 +146,12 @@ func (repo *repository) delete(ctx context.Context, u string, id int64, v int8) 
 		deleted_by = $3,
 		deleted_at = now()
 	WHERE id = $1 AND version = $2`
-	row, err := repo.conn.ExecContext(ctx, query, id, v, u)
+	res, err := repo.conn.ExecContext(ctx, query, id, v, u)
 	if err != nil {
 		return db.ParseError(err)
 	}
 
-	count, err := row.RowsAffected()
+	count, err := res.RowsAffected()
 	if err != nil {
 		return db.ParseError(err)
 	}
