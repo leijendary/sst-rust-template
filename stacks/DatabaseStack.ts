@@ -7,5 +7,5 @@ export function DatabaseStack({ stack }: StackContext) {
   const name = new Config.Secret(stack, "DB_NAME");
   const sslMode = new Config.Secret(stack, "DB_SSL_MODE");
 
-  return [username, password, url, name, sslMode];
+  return { username, password, url, name, sslMode };
 }

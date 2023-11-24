@@ -70,9 +70,9 @@ func (st SampleTranslationRequests) ToDatabase() []*sample.SampleTranslation {
 	return translations
 }
 
-func ToListResponse(l []*sample.Sample) []*SampleResponse {
-	list := make([]*SampleResponse, len(l))
-	for i, v := range l {
+func ToListResponse(sa []*sample.Sample) []*SampleResponse {
+	list := make([]*SampleResponse, len(sa))
+	for i, v := range sa {
 		list[i] = &SampleResponse{
 			ID:             v.ID,
 			Name:           v.Name,

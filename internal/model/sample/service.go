@@ -4,10 +4,12 @@ import (
 	"context"
 	"sst-go-template/internal/db"
 	"sst-go-template/internal/request"
+	"time"
 )
 
 type Service interface {
-	List(ctx context.Context, q string, p request.Pagination) ([]*Sample, int, error)
+	Seek(ctx context.Context, q string, s request.Seekable) ([]*Sample, *time.Time, int64, error)
+	Page(ctx context.Context, q string, p request.Pageable) ([]*Sample, int, error)
 	Create(ctx context.Context, s *Sample) error
 	Get(ctx context.Context, id int64) (*Sample, error)
 	Update(ctx context.Context, id int64, s *Sample) error
@@ -22,13 +24,17 @@ func NewService(repo *repository) *service {
 	return &service{repo}
 }
 
-func (svc *service) List(ctx context.Context, q string, p request.Pagination) ([]*Sample, int, error) {
-	list, err := svc.repo.list(context.Background(), q, p)
+func (svc *service) Seek(ctx context.Context, q string, s request.Seekable) ([]*Sample, *time.Time, int64, error) {
+	return svc.repo.seek(ctx, q, s)
+}
+
+func (svc *service) Page(ctx context.Context, q string, p request.Pageable) ([]*Sample, int, error) {
+	list, err := svc.repo.page(ctx, q, p)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	count, err := svc.repo.count(context.Background(), q)
+	count, err := svc.repo.count(ctx, q)
 	if err != nil {
 		return nil, 0, err
 	}

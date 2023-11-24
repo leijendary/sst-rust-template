@@ -34,7 +34,8 @@ type SampleTranslation struct {
 }
 
 type Repository interface {
-	list(ctx context.Context, q string, p request.Pagination) ([]*Sample, error)
+	seek(ctx context.Context, q string, s request.Seekable) ([]*Sample, *time.Time, int64, error)
+	page(ctx context.Context, q string, p request.Pageable) ([]*Sample, error)
 	count(ctx context.Context, q string) (int, error)
 	save(ctx context.Context, tx *sql.Tx, s *Sample) error
 	get(ctx context.Context, id int64) (*Sample, error)
@@ -53,7 +54,51 @@ func NewRepository(conn *sql.DB) *repository {
 	return &repository{conn}
 }
 
-func (repo *repository) list(ctx context.Context, q string, p request.Pagination) ([]*Sample, error) {
+func (repo *repository) seek(ctx context.Context, q string, s request.Seekable) ([]*Sample, *time.Time, int64, error) {
+	query := `SELECT id, name, description, amount, version, created_at, created_by, last_modified_at, last_modified_by
+	FROM sample
+	WHERE name ILIKE CONCAT('%%', $1::text, '%%') AND deleted_at IS NULL %s
+	ORDER BY created_at DESC, id DESC
+	LIMIT $2`
+	args := []any{q, s.Size + 1}
+	if s.CreatedAt != nil && s.ID > 0 {
+		query = fmt.Sprintf(query, "AND (created_at, id) < ($3, $4)")
+		args = append(args, s.CreatedAt.Format(time.RFC3339Nano), s.ID)
+	} else {
+		query = fmt.Sprintf(query, "")
+	}
+
+	rows, err := repo.conn.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, nil, 0, db.ParseError(err)
+	}
+	defer rows.Close()
+
+	var (
+		ss        []*Sample
+		createdAt *time.Time
+		id        int64
+	)
+	for i := 0; rows.Next(); i++ {
+		var s Sample
+		if err := rows.Scan(&s.ID, &s.Name, &s.Description, &s.Amount, &s.Version, &s.CreatedAt, &s.CreatedBy, &s.LastModifiedAt, &s.LastModifiedBy); err != nil {
+			return nil, nil, 0, db.ParseError(err)
+		}
+		ss = append(ss, &s)
+	}
+
+	l := len(ss)
+	if l > s.Size {
+		ss = ss[:l-1]
+		last := ss[len(ss)-1]
+		createdAt = &last.CreatedAt
+		id = last.ID
+	}
+
+	return ss, createdAt, id, nil
+}
+
+func (repo *repository) page(ctx context.Context, q string, p request.Pageable) ([]*Sample, error) {
 	const query = `SELECT id, name, description, amount, version, created_at, created_by, last_modified_at, last_modified_by
 	FROM sample
 	WHERE name ILIKE CONCAT('%%', $1::text, '%%') AND deleted_at IS NULL

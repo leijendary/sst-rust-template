@@ -11,11 +11,9 @@ CREATE TABLE sample (
     deleted_at timestamp with time zone,
     deleted_by text
 );
-
-CREATE UNIQUE INDEX sample_pkey ON sample(id int8_ops);
-CREATE INDEX sample_created_at_id_idx ON sample(created_at timestamptz_ops DESC,id int8_ops DESC);
-CREATE UNIQUE INDEX sample_name_key ON sample((lower(name::text)) text_ops) WHERE deleted_at IS NULL;
-
+CREATE UNIQUE INDEX sample_name_key ON sample(lower(name::text))
+WHERE deleted_at IS NULL;
+CREATE INDEX sample_created_at_id_idx ON sample(created_at DESC, id DESC);
 CREATE TABLE sample_translation (
     id bigint REFERENCES sample(id),
     name character varying(100) NOT NULL,
@@ -24,5 +22,4 @@ CREATE TABLE sample_translation (
     ordinal smallint NOT NULL,
     CONSTRAINT sample_translation_pkey PRIMARY KEY (id, language)
 );
-
-CREATE UNIQUE INDEX sample_translation_pkey ON sample_translation(id int8_ops,language text_ops);
+CREATE INDEX sample_translation_id_idx ON sample_translation(id);

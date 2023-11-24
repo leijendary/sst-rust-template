@@ -18,7 +18,7 @@ export function AdminApiStack({ stack }: StackContext) {
     defaults: {
       authorizer: "jwt",
       function: {
-        bind: [...database],
+        bind: [...Object.values(database)],
       },
     },
     routes: {

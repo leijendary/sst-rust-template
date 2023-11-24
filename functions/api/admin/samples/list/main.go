@@ -23,9 +23,9 @@ func handler(ctx context.Context, event events.APIGatewayV2HTTPRequest) (events.
 	var (
 		params = event.QueryStringParameters
 		q      = params["query"]
-		p      = request.GetPagination(params)
+		p      = request.GetPageable(params)
 	)
-	list, total, err := service.List(ctx, q, p)
+	list, total, err := service.Page(ctx, q, p)
 	if err != nil {
 		return response.ErrorJSON(err)
 	}
