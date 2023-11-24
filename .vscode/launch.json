@@ -2,14 +2,13 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Debug SST Start",
+      "name": "Debug SST Dev",
       "type": "node",
       "request": "launch",
       "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/sst",
       "runtimeArgs": ["dev", "--increase-timeout"],
       "console": "externalTerminal",
-      "skipFiles": ["<node_internals>/**"],
-      "env": {}
+      "skipFiles": ["<node_internals>/**"]
     }
   ]
 }
