@@ -6,8 +6,8 @@
       "type": "node",
       "request": "launch",
       "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/sst",
-      "runtimeArgs": ["start", "--increase-timeout"],
-      "console": "integratedTerminal",
+      "runtimeArgs": ["dev", "--increase-timeout"],
+      "console": "externalTerminal",
       "skipFiles": ["<node_internals>/**"],
       "env": {}
     }
