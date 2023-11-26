@@ -90,7 +90,7 @@ func (repo *repository) seek(ctx context.Context, q string, s request.Seekable) 
 	l := len(ss)
 	if l > s.Size {
 		ss = ss[:l-1]
-		last := ss[len(ss)-1]
+		last := ss[l-2]
 		createdAt = &last.CreatedAt
 		id = last.ID
 	}
