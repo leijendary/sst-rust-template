@@ -1,4 +1,4 @@
-# GO SST template
+# SST Go template
 
 - This template is intended for personal use
 - Sample classes are included
