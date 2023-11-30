@@ -83,7 +83,7 @@ impl SampleRepository for PostgresRepository {
             where
                 name ilike concat('%%', $1::text, '%%')
                 and deleted_at is null
-                and ($3 is null and $4 is null or (created_at, id) < ($3, $4))
+                and ($3 is null or $4 is null or (created_at, id) < ($3, $4))
             order by created_at desc, id desc
 	        limit $2";
         let result = query_as::<_, SampleList>(sql)
