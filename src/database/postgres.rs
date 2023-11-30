@@ -5,6 +5,16 @@ use sqlx::{postgres::PgPoolOptions, PgPool};
 
 const DATABASE_URL: &str = "DATABASE_URL";
 
+pub struct PostgresRepository {
+    pub pool: PgPool,
+}
+
+impl PostgresRepository {
+    pub fn new(pool: PgPool) -> Self {
+        Self { pool }
+    }
+}
+
 pub async fn connect_postgres(client: &Client) -> PgPool {
     let url = match env::var_os(DATABASE_URL) {
         Some(url) => url.into_string().unwrap(),

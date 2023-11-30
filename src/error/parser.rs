@@ -42,7 +42,7 @@ pub fn resource_error(id: i64, pointer: String, err: Error) -> ErrorResult {
 }
 
 pub fn database_error(err: Error) -> ErrorResult {
-    let (status, error) = match err.as_database_error() {
+    let (status, detail) = match err.as_database_error() {
         Some(err) => parse_detail(err),
         None => {
             error!(target: "database_error", "Something failed in the database. {}", err.to_string());
@@ -52,7 +52,7 @@ pub fn database_error(err: Error) -> ErrorResult {
 
     ErrorResult {
         status,
-        errors: vec![error],
+        errors: vec![detail],
     }
 }
 

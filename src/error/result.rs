@@ -1,4 +1,5 @@
 use serde::Serialize;
+use serde_with::skip_serializing_none;
 
 pub enum MetaValue {
     Str(String),
@@ -11,21 +12,19 @@ pub struct ErrorResult {
     pub errors: Vec<ErrorDetail>,
 }
 
+#[skip_serializing_none]
 #[derive(Serialize)]
 pub struct ErrorDetail {
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
     pub code: String,
     pub source: ErrorSource,
 }
 
+#[skip_serializing_none]
 #[derive(Serialize)]
 pub struct ErrorSource {
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub pointer: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub parameter: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub header: Option<String>,
 }
 

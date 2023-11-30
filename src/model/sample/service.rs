@@ -1,8 +1,10 @@
 use tokio::try_join;
 
 use crate::{
-    database::repository::PostgresRepository, error::result::ErrorResult, request::page::Pageable,
-    response::page::Page,
+    database::postgres::PostgresRepository,
+    error::result::ErrorResult,
+    request::{page::PageRequest, seek::SeekRequest},
+    response::{page::Page, seek::Seek},
 };
 
 use super::repository::{SampleList, SampleRepository};
@@ -12,19 +14,26 @@ pub struct SampleService {
 }
 
 impl SampleService {
+    pub async fn seek(
+        &self,
+        query: &Option<String>,
+        seekable: &SeekRequest,
+    ) -> Result<Seek<SampleList>, ErrorResult> {
+        let list = self.repository.sample_seek(&query, &seekable).await?;
+
+        Ok(Seek::new(list, &seekable))
+    }
+
     pub async fn list(
         &self,
-        query: String,
-        pageable: Pageable,
+        query: &Option<String>,
+        page_request: &PageRequest,
     ) -> Result<Page<SampleList>, ErrorResult> {
-        let result = try_join!(
-            self.repository.sample_list(&query, &pageable),
+        let (list, count) = try_join!(
+            self.repository.sample_list(&query, &page_request),
             self.repository.sample_count(&query)
-        );
+        )?;
 
-        match result {
-            Ok((list, count)) => Ok(Page::new(list, count, &pageable)),
-            Err(error) => Err(error),
-        }
+        Ok(Page::new(list, count, &page_request))
     }
 }

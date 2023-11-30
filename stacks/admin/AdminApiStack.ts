@@ -26,11 +26,11 @@ export function AdminApiStack({ stack }: StackContext) {
       /* "GET /api/admin/samples/{id}": "functions/api/admin/samples/get",
       "POST /api/admin/samples": "functions/api/admin/samples/save",
       "PUT /api/admin/samples/{id}": "functions/api/admin/samples/update",
-      "DELETE /api/admin/samples/{id}": "functions/api/admin/samples/delete",
+      "DELETE /api/admin/samples/{id}": "functions/api/admin/samples/delete", */
       $default: {
         authorizer: "none",
-        function: "functions/api/default.go",
-      }, */
+        function: "functions/api/default.rs",
+      },
     },
   });
   auth.attachPermissionsForAuthUsers(stack, [api]);

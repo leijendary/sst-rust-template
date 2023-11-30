@@ -16,16 +16,17 @@ export function CustomerApiStack({ stack }: StackContext) {
       },
     },
     defaults: {
-      authorizer: "jwt",
+      /* authorizer: "jwt", */
       function: {
         bind: [...Object.values(database)],
       },
     },
     routes: {
-      /* $default: {
+      "GET /api/v1/samples": "functions/api/v1/samples/sample_seek.rs",
+      $default: {
         authorizer: "none",
-        function: "functions/api/default.go",
-      }, */
+        function: "functions/api/default.rs",
+      },
     },
   });
   auth.attachPermissionsForAuthUsers(stack, [api]);
