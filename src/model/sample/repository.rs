@@ -98,19 +98,16 @@ impl SampleRepository for PostgresRepository {
                 and ($4 is null or $5 is null or (created_at, id) < ($4, $5))
             order by created_at desc, id desc
 	        limit $3";
-        let result = query_as::<_, SampleList>(sql)
+
+        query_as::<_, SampleList>(sql)
             .bind(&filter.language)
             .bind(&filter.query)
             .bind(seekable.limit())
             .bind(seekable.created_at)
             .bind(seekable.id)
             .fetch_all(&self.pool)
-            .await;
-
-        match result {
-            Ok(result) => Ok(result),
-            Err(error) => Err(database_error(error)),
-        }
+            .await
+            .map_err(|error| database_error(error))
     }
 
     async fn sample_list(
@@ -124,28 +121,26 @@ impl SampleRepository for PostgresRepository {
             order by created_at desc
             limit $2
             offset $3";
-        let result = query_as::<_, SampleList>(sql)
+
+        query_as::<_, SampleList>(sql)
             .bind(query)
             .bind(page_request.limit())
             .bind(page_request.offset())
             .fetch_all(&self.pool)
-            .await;
-
-        match result {
-            Ok(result) => Ok(result),
-            Err(error) => Err(database_error(error)),
-        }
+            .await
+            .map_err(|error| database_error(error))
     }
 
     async fn sample_count(&self, query: &Option<String>) -> Result<i64, ErrorResult> {
         let sql = "select count(*)
             from sample
             where deleted_at is null and name ilike concat('%%', $1::text, '%%')";
-        let result: Result<(i64,), Error> = query_as(sql).bind(query).fetch_one(&self.pool).await;
 
-        match result {
-            Ok(result) => Ok(result.0),
-            Err(error) => Err(database_error(error)),
-        }
+        query_as(sql)
+            .bind(query)
+            .fetch_one(&self.pool)
+            .await
+            .map(|result: (i64,)| result.0)
+            .map_err(|error| database_error(error))
     }
 }
