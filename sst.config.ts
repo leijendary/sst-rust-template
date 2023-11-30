@@ -8,7 +8,7 @@ import { CustomerAuthStack } from "./stacks/customer/CustomerAuthStack";
 export default {
   config(_input) {
     return {
-      name: "sst-go-template",
+      name: "sst-rust-template",
       region: "eu-central-1",
     };
   },
@@ -20,7 +20,7 @@ export default {
     app.setDefaultFunctionProps({
       architecture: "arm_64",
       logRetention: app.stage === "prod" ? "three_months" : "one_week",
-      runtime: "go",
+      runtime: "rust",
     });
     app
       .stack(DatabaseStack)

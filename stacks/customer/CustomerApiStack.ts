@@ -22,10 +22,10 @@ export function CustomerApiStack({ stack }: StackContext) {
       },
     },
     routes: {
-      $default: {
+      /* $default: {
         authorizer: "none",
         function: "functions/api/default.go",
-      },
+      }, */
     },
   });
   auth.attachPermissionsForAuthUsers(stack, [api]);

@@ -1,0 +1,38 @@
+[package]
+name = "sst-rust"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tokio = { version = "1.34.0", features = ["full"] }
+lambda_http = { version = "0.8.3", optional = true }
+lambda_runtime = { version = "0.8.3", optional = true }
+tracing = { version = "0.1.40", features = ["log"] }
+tracing-subscriber = { version = "0.3.18", features = ["fmt"] }
+serde = { version = "1.0.193", features = ["derive"] }
+sqlx = { version = "0.7.3", features = [
+    "runtime-tokio-native-tls",
+    "postgres",
+    "rust_decimal",
+    "time",
+] }
+rust_decimal = "1.33.1"
+async-trait = "0.1.74"
+time = { version = "0.3.30", features = ["serde"] }
+log = "0.4.20"
+lazy_static = "1.4.0"
+regex = "1.10.2"
+convert_case = "0.6.0"
+serde_json = "1.0.108"
+aws-config = { version = "1.0.1", features = ["behavior-version-latest"] }
+aws-sdk-secretsmanager = "1.3.0"
+
+[features]
+default = ["lambda"]
+lambda = ["lambda_runtime", "lambda_http"]
+
+[[bin]]
+name = "sample_list"
+path = "functions/api/admin/samples/sample_list.rs"

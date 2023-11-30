@@ -16,21 +16,21 @@ export function AdminApiStack({ stack }: StackContext) {
       },
     },
     defaults: {
-      authorizer: "jwt",
+      /* authorizer: "jwt", */
       function: {
         bind: [...Object.values(database)],
       },
     },
     routes: {
-      "GET /api/admin/samples": "functions/api/admin/samples/list",
-      "GET /api/admin/samples/{id}": "functions/api/admin/samples/get",
+      "GET /api/admin/samples": "functions/api/admin/samples/sample_list.rs",
+      /* "GET /api/admin/samples/{id}": "functions/api/admin/samples/get",
       "POST /api/admin/samples": "functions/api/admin/samples/save",
       "PUT /api/admin/samples/{id}": "functions/api/admin/samples/update",
       "DELETE /api/admin/samples/{id}": "functions/api/admin/samples/delete",
       $default: {
         authorizer: "none",
         function: "functions/api/default.go",
-      },
+      }, */
     },
   });
   auth.attachPermissionsForAuthUsers(stack, [api]);
