@@ -7,7 +7,7 @@ use crate::{
     response::{page::Page, seek::Seek},
 };
 
-use super::repository::{SampleList, SampleRepository};
+use super::repository::{SampleList, SampleRepository, SampleSeekFilter};
 
 pub struct SampleService {
     pub repository: PostgresRepository,
@@ -16,10 +16,10 @@ pub struct SampleService {
 impl SampleService {
     pub async fn seek(
         &self,
-        query: &Option<String>,
+        filter: &SampleSeekFilter,
         seekable: &SeekRequest,
     ) -> Result<Seek<SampleList>, ErrorResult> {
-        let list = self.repository.sample_seek(&query, &seekable).await?;
+        let list = self.repository.sample_seek(filter, seekable).await?;
 
         Ok(Seek::new(list, &seekable))
     }

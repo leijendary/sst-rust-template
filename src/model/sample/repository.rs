@@ -54,11 +54,16 @@ pub struct SampleDetail {
     pub last_modified_by: String,
 }
 
+pub struct SampleSeekFilter {
+    pub language: Option<String>,
+    pub query: Option<String>,
+}
+
 #[async_trait]
 pub trait SampleRepository {
     async fn sample_seek(
         &self,
-        query: &Option<String>,
+        filter: &SampleSeekFilter,
         seekable: &SeekRequest,
     ) -> Result<Vec<SampleList>, ErrorResult>;
 
@@ -75,19 +80,27 @@ pub trait SampleRepository {
 impl SampleRepository for PostgresRepository {
     async fn sample_seek(
         &self,
-        query: &Option<String>,
+        filter: &SampleSeekFilter,
         seekable: &SeekRequest,
     ) -> Result<Vec<SampleList>, ErrorResult> {
-        let sql = "select id, name, description, amount, created_at, last_modified_at
-            from sample
+        let sql = "select s.id, t.name, t.description, amount, created_at, last_modified_at
+            from sample s
+            left join lateral (
+                select name, description
+                from sample_translation
+                where id = s.id
+                order by (language = $1)::int desc, ordinal
+                limit 1
+            ) t on true
             where
-                name ilike concat('%%', $1::text, '%%')
-                and deleted_at is null
-                and ($3 is null or $4 is null or (created_at, id) < ($3, $4))
+                deleted_at is null
+                and (s.name ilike concat('%%', $2::text, '%%') or t.name ilike concat('%%', $2::text, '%%'))
+                and ($4 is null or $5 is null or (created_at, id) < ($4, $5))
             order by created_at desc, id desc
-	        limit $2";
+	        limit $3";
         let result = query_as::<_, SampleList>(sql)
-            .bind(query)
+            .bind(&filter.language)
+            .bind(&filter.query)
             .bind(seekable.limit())
             .bind(seekable.created_at)
             .bind(seekable.id)
@@ -107,7 +120,7 @@ impl SampleRepository for PostgresRepository {
     ) -> Result<Vec<SampleList>, ErrorResult> {
         let sql = "select id, name, description, amount, created_at, last_modified_at
             from sample
-            where name ilike concat('%%', $1::text, '%%') and deleted_at is null
+            where deleted_at is null and name ilike concat('%%', $1::text, '%%')
             order by created_at desc
             limit $2
             offset $3";
@@ -127,7 +140,7 @@ impl SampleRepository for PostgresRepository {
     async fn sample_count(&self, query: &Option<String>) -> Result<i64, ErrorResult> {
         let sql = "select count(*)
             from sample
-            where name ilike concat('%%', $1::text, '%%') and deleted_at is null";
+            where deleted_at is null and name ilike concat('%%', $1::text, '%%')";
         let result: Result<(i64,), Error> = query_as(sql).bind(query).fetch_one(&self.pool).await;
 
         match result {
