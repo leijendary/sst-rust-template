@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use serde::Serialize;
 use serde_with::skip_serializing_none;
-use sqlx::{query_as, Error, FromRow};
+use sqlx::{query_as, FromRow};
 
 use rust_decimal::Decimal;
 use time::OffsetDateTime;
