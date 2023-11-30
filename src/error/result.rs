@@ -1,11 +1,6 @@
 use serde::Serialize;
 use serde_with::skip_serializing_none;
 
-pub enum MetaValue {
-    Str(String),
-    Int(isize),
-}
-
 #[derive(Serialize)]
 pub struct ErrorResult {
     pub status: u16,
