@@ -10,6 +10,7 @@ use sqlx::{
             CheckViolation, ForeignKeyViolation, NotNullViolation, Other, UniqueViolation,
         },
     },
+    postgres::PgDatabaseError,
     Error,
 };
 use std::vec;
@@ -32,6 +33,7 @@ pub fn resource_error(id: i64, pointer: String, err: Error) -> ErrorResult {
             pointer: Some(pointer),
             parameter: None,
             header: None,
+            meta: None,
         },
     };
 
@@ -43,7 +45,7 @@ pub fn resource_error(id: i64, pointer: String, err: Error) -> ErrorResult {
 
 pub fn database_error(err: Error) -> ErrorResult {
     let (status, detail) = match err.as_database_error() {
-        Some(err) => parse_detail(err),
+        Some(err) => parse_detail(err.downcast_ref()),
         None => {
             error!(target: "database_error", "Something failed in the database. {}", err.to_string());
             return internal_server();
@@ -56,16 +58,15 @@ pub fn database_error(err: Error) -> ErrorResult {
     }
 }
 
-fn parse_detail(err: &dyn DatabaseError) -> (u16, ErrorDetail) {
+fn parse_detail(err: &PgDatabaseError) -> (u16, ErrorDetail) {
     error!(target: "database_error", "Failed to execute a database query {:?}", err);
 
     let (status, code, pointer) = match err.kind() {
         UniqueViolation => {
-            let message = err.message();
             let table = err.table().unwrap_or("").to_string();
             let field = UNIQUE_REGEX
-                .captures_at(message, 1)
-                .map(|m| m.get(0).unwrap().as_str())
+                .captures(err.detail().unwrap())
+                .map(|m| m.get(1).unwrap().as_str())
                 .unwrap()
                 .split(", ")
                 .last()
@@ -87,6 +88,7 @@ fn parse_detail(err: &dyn DatabaseError) -> (u16, ErrorDetail) {
             pointer: Some(pointer),
             parameter: None,
             header: None,
+            meta: None,
         },
     };
 

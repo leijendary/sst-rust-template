@@ -16,15 +16,15 @@ export function AdminApiStack({ stack }: StackContext) {
       },
     },
     defaults: {
-      /* authorizer: "jwt", */
+      authorizer: "jwt",
       function: {
         bind: [...Object.values(database)],
       },
     },
     routes: {
       "GET /api/admin/samples": "functions/api/admin/samples/sample_list.rs",
-      /* "POST /api/admin/samples": "functions/api/admin/samples/save",
-      "GET /api/admin/samples/{id}": "functions/api/admin/samples/get",
+      "POST /api/admin/samples": "functions/api/admin/samples/sample_create.rs",
+      /* "GET /api/admin/samples/{id}": "functions/api/admin/samples/get",
       "PUT /api/admin/samples/{id}": "functions/api/admin/samples/update",
       "DELETE /api/admin/samples/{id}": "functions/api/admin/samples/delete", */
       $default: {

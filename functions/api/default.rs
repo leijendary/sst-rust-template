@@ -3,7 +3,7 @@ use lambda_runtime::service_fn;
 use sst_rust::{
     config::tracing::enable_tracing,
     error::result::{ErrorDetail, ErrorResult, ErrorSource},
-    response::json::json_response,
+    response::json::error_response,
 };
 
 async fn handler(_: Request) -> Result<Response<Body>, Error> {
@@ -13,6 +13,7 @@ async fn handler(_: Request) -> Result<Response<Body>, Error> {
             pointer: Some("/path".to_string()),
             parameter: None,
             header: None,
+            meta: None,
         },
         id: None,
     };
@@ -21,7 +22,7 @@ async fn handler(_: Request) -> Result<Response<Body>, Error> {
         errors: vec![error],
     };
 
-    json_response(result.status, Ok(result))
+    error_response(result)
 }
 
 #[tokio::main]

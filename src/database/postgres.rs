@@ -1,7 +1,9 @@
 use std::env;
 
 use aws_sdk_secretsmanager::Client;
-use sqlx::{postgres::PgPoolOptions, PgPool};
+use sqlx::{postgres::PgPoolOptions, PgPool, Postgres, Transaction};
+
+use crate::error::{parser::database_error, result::ErrorResult};
 
 const DATABASE_URL: &str = "DATABASE_URL";
 
@@ -15,6 +17,18 @@ impl PostgresRepository {
     }
 }
 
+pub async fn begin(pool: &PgPool) -> Result<Transaction<Postgres>, ErrorResult> {
+    pool.begin().await.map_err(|error| database_error(error))
+}
+
+pub async fn commit(tx: Transaction<'_, Postgres>) -> Result<(), ErrorResult> {
+    tx.commit().await.map_err(|error| database_error(error))
+}
+
+pub async fn rollback(tx: Transaction<'_, Postgres>) -> Result<(), ErrorResult> {
+    tx.rollback().await.map_err(|error| database_error(error))
+}
+
 pub async fn connect_postgres(client: &Client) -> PgPool {
     let url = match env::var_os(DATABASE_URL) {
         Some(url) => url.into_string().unwrap(),
@@ -23,7 +37,7 @@ pub async fn connect_postgres(client: &Client) -> PgPool {
 
     PgPoolOptions::new()
         .max_connections(2)
-        .connect(url.as_str())
+        .connect(&url)
         .await
         .expect("Unable to connect to PostgreSQL")
 }

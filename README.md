@@ -1,11 +1,11 @@
-# SST Go template
+# SST Rust template
 
 - This template is intended for personal use
 - Sample classes are included
 
 # Technologies used:
 
-- Go
+- Rust
 - AWS
 - [SST](https://sst.dev)
 

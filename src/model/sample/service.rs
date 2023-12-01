@@ -1,13 +1,15 @@
 use tokio::try_join;
 
 use crate::{
-    database::postgres::PostgresRepository,
+    database::postgres::{begin, commit, PostgresRepository},
     error::result::ErrorResult,
     request::{page::PageRequest, seek::SeekRequest},
     response::{page::Page, seek::Seek},
 };
 
-use super::repository::{SampleList, SampleRepository, SampleSeekFilter};
+use super::repository::{
+    SampleCreate, SampleDetail, SampleList, SampleRepository, SampleSeekFilter,
+};
 
 pub struct SampleService {
     pub repository: PostgresRepository,
@@ -21,7 +23,7 @@ impl SampleService {
     ) -> Result<Seek<SampleList>, ErrorResult> {
         let list = self.repository.sample_seek(filter, seekable).await?;
 
-        Ok(Seek::new(list, &seekable))
+        Ok(Seek::new(list, seekable))
     }
 
     pub async fn list(
@@ -30,10 +32,25 @@ impl SampleService {
         page_request: &PageRequest,
     ) -> Result<Page<SampleList>, ErrorResult> {
         let (list, count) = try_join!(
-            self.repository.sample_list(&query, &page_request),
-            self.repository.sample_count(&query)
+            self.repository.sample_list(query, page_request),
+            self.repository.sample_count(query)
         )?;
 
         Ok(Page::new(list, count, &page_request))
+    }
+
+    pub async fn create(&self, request: &SampleCreate) -> Result<SampleDetail, ErrorResult> {
+        let translations = request.translations.as_ref().unwrap();
+        let mut tx = begin(&self.repository.pool).await?;
+        let mut sample = self.repository.sample_create(&mut tx, request).await?;
+        sample.translations = self
+            .repository
+            .sample_translations_create(&mut tx, &sample.id, translations)
+            .await
+            .map(|translations| Some(translations))?;
+
+        commit(tx).await?;
+
+        Ok(sample)
     }
 }

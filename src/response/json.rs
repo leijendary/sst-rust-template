@@ -1,4 +1,4 @@
-use lambda_http::{Body, Error, Response};
+use lambda_http::{http::header::CONTENT_TYPE, Body, Error, Response};
 use serde::Serialize;
 
 use crate::error::result::ErrorResult;
@@ -12,8 +12,19 @@ pub fn json_response<T: Serialize>(
         Err(error) => (error.status, serde_json::to_string(&error).unwrap()),
     };
     let response = Response::builder()
-        .header("Content-Type", "application/json")
+        .header(CONTENT_TYPE, "application/json")
         .status(status)
+        .body(body.into())
+        .map_err(Box::new)?;
+
+    Ok(response)
+}
+
+pub fn error_response(result: ErrorResult) -> Result<Response<Body>, Error> {
+    let body = serde_json::to_string(&result).unwrap();
+    let response = Response::builder()
+        .header(CONTENT_TYPE, "application/json")
+        .status(result.status)
         .body(body.into())
         .map_err(Box::new)?;
 

@@ -16,7 +16,7 @@ export function CustomerApiStack({ stack }: StackContext) {
       },
     },
     defaults: {
-      /* authorizer: "jwt", */
+      authorizer: "jwt",
       function: {
         bind: [...Object.values(database)],
       },

@@ -1,4 +1,7 @@
+use std::{borrow::Cow, collections::HashMap};
+
 use serde::Serialize;
+use serde_json::Value;
 use serde_with::skip_serializing_none;
 
 #[derive(Serialize)]
@@ -21,6 +24,7 @@ pub struct ErrorSource {
     pub pointer: Option<String>,
     pub parameter: Option<String>,
     pub header: Option<String>,
+    pub meta: Option<HashMap<Cow<'static, str>, Value>>,
 }
 
 pub fn internal_server() -> ErrorResult {
@@ -31,11 +35,30 @@ pub fn internal_server() -> ErrorResult {
             pointer: Some("/server".to_string()),
             header: None,
             parameter: None,
+            meta: None,
         },
     };
 
     ErrorResult {
         status: 500,
+        errors: vec![error],
+    }
+}
+
+pub fn required_body() -> ErrorResult {
+    let error = ErrorDetail {
+        id: None,
+        code: "required".to_string(),
+        source: ErrorSource {
+            pointer: Some("/body".to_string()),
+            header: None,
+            parameter: None,
+            meta: None,
+        },
+    };
+
+    ErrorResult {
+        status: 400,
         errors: vec![error],
     }
 }
