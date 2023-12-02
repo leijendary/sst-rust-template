@@ -236,7 +236,7 @@ impl SampleRepository for PostgresRepository {
     }
 
     async fn sample_get(&self, id: i64) -> Result<SampleDetail, ErrorResult> {
-        let sql = "select id, name, description, amount, version, created_at, created_by, last_modified_at, last_modified_by
+        let sql = "select id, name, description, amount, version, created_at
             from sample
             where id = $1 and deleted_at is null";
 
