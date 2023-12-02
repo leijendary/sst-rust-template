@@ -2,9 +2,7 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use serde_trim::option_string_trim;
 use serde_with::skip_serializing_none;
-use sqlx::{
-    postgres::PgArguments, query_as, Execute, FromRow, Postgres, QueryBuilder, Transaction,
-};
+use sqlx::{query_as, FromRow, Postgres, Transaction};
 use time::OffsetDateTime;
 use validator::Validate;
 
