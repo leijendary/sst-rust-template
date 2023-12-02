@@ -115,7 +115,7 @@ pub trait SampleRepository {
     async fn sample_seek(
         &self,
         filter: &SampleSeekFilter,
-        seekable: &SeekRequest,
+        seek_request: &SeekRequest,
     ) -> Result<Vec<SampleList>, ErrorResult>;
 
     async fn sample_list(
@@ -152,7 +152,7 @@ impl SampleRepository for PostgresRepository {
     async fn sample_seek(
         &self,
         filter: &SampleSeekFilter,
-        seekable: &SeekRequest,
+        seek_request: &SeekRequest,
     ) -> Result<Vec<SampleList>, ErrorResult> {
         let sql = "select s.id, t.name, t.description, amount, created_at
             from sample s
@@ -173,9 +173,9 @@ impl SampleRepository for PostgresRepository {
         query_as(sql)
             .bind(&filter.language)
             .bind(&filter.query)
-            .bind(seekable.limit())
-            .bind(seekable.created_at)
-            .bind(seekable.id)
+            .bind(seek_request.limit())
+            .bind(seek_request.created_at)
+            .bind(seek_request.id)
             .fetch_all(&self.pool)
             .await
             .map_err(|error| database_error(error))

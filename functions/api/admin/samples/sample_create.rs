@@ -40,7 +40,7 @@ async fn main() -> Result<(), Error> {
     let service = &SampleService { repository };
 
     run(service_fn(move |event: Request| async move {
-        handler(&service, event).await
+        handler(service, event).await
     }))
     .await
 }

@@ -13,8 +13,8 @@ async fn handler(service: &SampleService, event: Request) -> Result<Response<Bod
     let language = get_accept_language(&event);
     let query = query_param(&event, "query");
     let filter = &SampleSeekFilter { language, query };
-    let seekable = &SeekRequest::new(&event);
-    let result = service.seek(filter, seekable).await;
+    let seek_request = &SeekRequest::new(&event);
+    let result = service.seek(filter, seek_request).await;
 
     json_response(200, result)
 }
@@ -29,7 +29,7 @@ async fn main() -> Result<(), Error> {
     let service = &SampleService { repository };
 
     run(service_fn(move |event: Request| async move {
-        handler(&service, event).await
+        handler(service, event).await
     }))
     .await
 }

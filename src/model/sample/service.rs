@@ -19,11 +19,11 @@ impl SampleService {
     pub async fn seek(
         &self,
         filter: &SampleSeekFilter,
-        seekable: &SeekRequest,
+        seek_request: &SeekRequest,
     ) -> Result<Seek<SampleList>, ErrorResult> {
-        let list = self.repository.sample_seek(filter, seekable).await?;
+        let list = self.repository.sample_seek(filter, seek_request).await?;
 
-        Ok(Seek::new(list, seekable))
+        Ok(Seek::new(list, seek_request))
     }
 
     pub async fn list(
