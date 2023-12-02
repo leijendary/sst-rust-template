@@ -45,11 +45,21 @@ impl SampleService {
         let mut sample = self.repository.sample_create(&mut tx, request).await?;
         sample.translations = self
             .repository
-            .sample_translations_create(&mut tx, &sample.id, translations)
+            .sample_translations_create(&mut tx, sample.id, translations)
             .await
             .map(|translations| Some(translations))?;
 
         commit(tx).await?;
+
+        Ok(sample)
+    }
+
+    pub async fn get(&self, id: i64) -> Result<SampleDetail, ErrorResult> {
+        let (mut sample, translations) = try_join!(
+            self.repository.sample_get(id),
+            self.repository.sample_translations_list(id)
+        )?;
+        sample.translations = Some(translations);
 
         Ok(sample)
     }

@@ -1,33 +1,22 @@
-use lambda_http::{run, Body, Error, Request, RequestPayloadExt, Response};
+use lambda_http::{run, Body, Error, Request, Response};
 use lambda_runtime::service_fn;
 use sst_rust::{
     config::tracing::enable_tracing,
     database::postgres::{connect_postgres, PostgresRepository},
-    error::result::required_body,
-    model::sample::{repository::SampleCreate, service::SampleService},
-    request::{context::get_user_id, validator::validate},
+    model::sample::service::SampleService,
+    request::path::path_param,
     response::json::{error_response, json_response},
     storage::secret::secret_client,
 };
 
 async fn handler(service: &SampleService, event: Request) -> Result<Response<Body>, Error> {
-    let user_id = get_user_id(&event);
-    let mut sample = match event.payload::<SampleCreate>()? {
-        Some(value) => value,
-        None => return error_response(required_body()),
-    };
-
-    match validate(&sample) {
-        Ok(_) => (),
+    let id = match path_param::<i64>(&event, "id") {
+        Ok(id) => id,
         Err(error) => return error_response(error),
-    }
+    };
+    let result = service.get(id).await;
 
-    sample.created_by = user_id.to_owned();
-    sample.last_modified_by = user_id.to_owned();
-
-    let result = service.create(&sample).await;
-
-    json_response(201, result)
+    json_response(200, result)
 }
 
 #[tokio::main]

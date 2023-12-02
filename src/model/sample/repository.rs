@@ -8,7 +8,10 @@ use validator::Validate;
 
 use crate::{
     database::postgres::PostgresRepository,
-    error::{parser::database_error, result::ErrorResult},
+    error::{
+        parser::{database_error, resource_error},
+        result::ErrorResult,
+    },
     model::translation::Translation,
     request::{page::PageRequest, seek::SeekRequest, validator::validate_unique_translation},
     response::seek::Seekable,
@@ -129,10 +132,17 @@ pub trait SampleRepository {
         sample: &SampleCreate,
     ) -> Result<SampleDetail, ErrorResult>;
 
+    async fn sample_get(&self, id: i64) -> Result<SampleDetail, ErrorResult>;
+
+    async fn sample_translations_list(
+        &self,
+        id: i64,
+    ) -> Result<Vec<SampleTranslation>, ErrorResult>;
+
     async fn sample_translations_create(
         &self,
         tx: &mut Transaction<Postgres>,
-        id: &i64,
+        id: i64,
         translations: &Vec<SampleTranslation>,
     ) -> Result<Vec<SampleTranslation>, ErrorResult>;
 }
@@ -225,10 +235,37 @@ impl SampleRepository for PostgresRepository {
             .map_err(|error| database_error(error))
     }
 
+    async fn sample_get(&self, id: i64) -> Result<SampleDetail, ErrorResult> {
+        let sql = "select id, name, description, amount, version, created_at, created_by, last_modified_at, last_modified_by
+            from sample
+            where id = $1 and deleted_at is null";
+
+        query_as(sql)
+            .bind(id)
+            .fetch_one(&self.pool)
+            .await
+            .map_err(|error| resource_error(id, "/data/sample", error))
+    }
+
+    async fn sample_translations_list(
+        &self,
+        id: i64,
+    ) -> Result<Vec<SampleTranslation>, ErrorResult> {
+        let sql = "select name, description, language, ordinal
+            from sample_translation
+            where id = $1";
+
+        query_as(sql)
+            .bind(id)
+            .fetch_all(&self.pool)
+            .await
+            .map_err(|error| database_error(error))
+    }
+
     async fn sample_translations_create(
         &self,
         tx: &mut Transaction<Postgres>,
-        id: &i64,
+        id: i64,
         translations: &Vec<SampleTranslation>,
     ) -> Result<Vec<SampleTranslation>, ErrorResult> {
         let sql = "insert into sample_translation (id, name, description, language, ordinal)
@@ -242,7 +279,7 @@ impl SampleRepository for PostgresRepository {
         let mut ordinals = Vec::with_capacity(len);
 
         for translation in translations {
-            ids.push(*id);
+            ids.push(id);
             names.push(translation.name.to_owned());
             descriptions.push(translation.description.to_owned());
             languages.push(translation.language.to_owned());

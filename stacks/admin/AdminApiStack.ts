@@ -24,8 +24,8 @@ export function AdminApiStack({ stack }: StackContext) {
     routes: {
       "GET /api/admin/samples": "functions/api/admin/samples/sample_list.rs",
       "POST /api/admin/samples": "functions/api/admin/samples/sample_create.rs",
-      /* "GET /api/admin/samples/{id}": "functions/api/admin/samples/get",
-      "PUT /api/admin/samples/{id}": "functions/api/admin/samples/update",
+      "GET /api/admin/samples/{id}": "functions/api/admin/samples/sample_get.rs",
+      /* "PUT /api/admin/samples/{id}": "functions/api/admin/samples/update",
       "DELETE /api/admin/samples/{id}": "functions/api/admin/samples/delete", */
       $default: {
         authorizer: "none",

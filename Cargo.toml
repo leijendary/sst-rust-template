@@ -38,6 +38,7 @@ lambda = ["lambda_runtime", "lambda_http"]
 name = "default"
 path = "functions/api/default.rs"
 
+# Admin APIs
 [[bin]]
 name = "sample_list"
 path = "functions/api/admin/samples/sample_list.rs"
@@ -46,6 +47,11 @@ path = "functions/api/admin/samples/sample_list.rs"
 name = "sample_create"
 path = "functions/api/admin/samples/sample_create.rs"
 
+[[bin]]
+name = "sample_get"
+path = "functions/api/admin/samples/sample_get.rs"
+
+# Customer APIs
 [[bin]]
 name = "sample_seek"
 path = "functions/api/v1/samples/sample_seek.rs"

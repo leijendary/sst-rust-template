@@ -62,3 +62,39 @@ pub fn required_body() -> ErrorResult {
         errors: vec![error],
     }
 }
+
+pub fn required_parameter(name: &str) -> ErrorResult {
+    let error = ErrorDetail {
+        id: None,
+        code: "required".to_string(),
+        source: ErrorSource {
+            pointer: None,
+            header: None,
+            parameter: Some(name.to_string()),
+            meta: None,
+        },
+    };
+
+    ErrorResult {
+        status: 400,
+        errors: vec![error],
+    }
+}
+
+pub fn invalid_parameter(name: &str) -> ErrorResult {
+    let error: ErrorDetail = ErrorDetail {
+        id: None,
+        code: "invalid".to_string(),
+        source: ErrorSource {
+            pointer: None,
+            header: None,
+            parameter: Some(name.to_string()),
+            meta: None,
+        },
+    };
+
+    ErrorResult {
+        status: 400,
+        errors: vec![error],
+    }
+}

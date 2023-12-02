@@ -21,7 +21,7 @@ lazy_static! {
         Regex::new(r"Key \((?:lower\()?([a-zA-Z0-9, ]+)+(?:::text)?\)").unwrap();
 }
 
-pub fn resource_error(id: i64, pointer: String, err: Error) -> ErrorResult {
+pub fn resource_error(id: i64, pointer: &str, err: Error) -> ErrorResult {
     if !matches!(err, Error::RowNotFound) {
         return database_error(err);
     }
@@ -30,7 +30,7 @@ pub fn resource_error(id: i64, pointer: String, err: Error) -> ErrorResult {
         id: Some(id.to_string()),
         code: "not_found".to_string(),
         source: ErrorSource {
-            pointer: Some(pointer),
+            pointer: Some(pointer.to_owned()),
             parameter: None,
             header: None,
             meta: None,
