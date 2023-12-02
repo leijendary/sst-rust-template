@@ -15,9 +15,6 @@ impl PageRequest {
         let page = query_param(request, "page").unwrap_or(PAGE_DEFAULT);
         let size = query_param(request, "size").unwrap_or(SIZE_DEFAULT);
 
-        println!("{page}");
-        println!("{size}");
-
         PageRequest { page, size }
     }
 
