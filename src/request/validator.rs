@@ -59,8 +59,6 @@ where
 }
 
 fn map_validation_error(errors: &ValidationErrors) -> Vec<ErrorDetail> {
-    println!("Errors: {:?}", errors);
-
     errors
         .errors()
         .into_iter()
