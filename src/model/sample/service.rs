@@ -54,11 +54,22 @@ impl SampleService {
         Ok(sample)
     }
 
-    pub async fn get(&self, id: i64) -> Result<SampleDetail, ErrorResult> {
-        let (mut sample, translations) = try_join!(
-            self.repository.sample_get(id),
-            self.repository.sample_translations_list(id)
-        )?;
+    /// Gets a single sample record and returns the result.
+    /// If `translate` is true, `language` will be used to get the first translation applicable.
+    pub async fn get(
+        &self,
+        id: i64,
+        translate: bool,
+        language: &Option<String>,
+    ) -> Result<SampleDetail, ErrorResult> {
+        let sample_get_fut = self.repository.sample_get(id, translate, language);
+
+        if translate {
+            return sample_get_fut.await;
+        }
+
+        let (mut sample, translations) =
+            try_join!(sample_get_fut, self.repository.sample_translations_list(id))?;
         sample.translations = Some(translations);
 
         Ok(sample)

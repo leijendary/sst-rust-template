@@ -9,7 +9,7 @@ pub fn json_response<T: Serialize>(
 ) -> Result<Response<Body>, Error> {
     let (status, body) = match result {
         Ok(value) => (status, serde_json::to_string(&value).unwrap()),
-        Err(error) => (error.status, serde_json::to_string(&error).unwrap()),
+        Err(error) => return error_response(error),
     };
     let response = Response::builder()
         .header(CONTENT_TYPE, "application/json")

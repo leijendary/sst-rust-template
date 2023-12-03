@@ -112,6 +112,10 @@ pub struct SampleDetail {
 
 #[async_trait]
 pub trait SampleRepository {
+    /// Seek / keyset pagination.
+    /// This is a more optimized way to do pagination compared to limit-offset pagination.
+    /// The way this works is that this will use indices to get the first n results and
+    /// just limits after that.
     async fn sample_seek(
         &self,
         filter: &SampleSeekFilter,
@@ -132,7 +136,12 @@ pub trait SampleRepository {
         sample: &SampleCreate,
     ) -> Result<SampleDetail, ErrorResult>;
 
-    async fn sample_get(&self, id: i64) -> Result<SampleDetail, ErrorResult>;
+    async fn sample_get(
+        &self,
+        id: i64,
+        translate: bool,
+        language: &Option<String>,
+    ) -> Result<SampleDetail, ErrorResult>;
 
     async fn sample_translations_list(
         &self,
@@ -235,13 +244,34 @@ impl SampleRepository for PostgresRepository {
             .map_err(|error| database_error(error))
     }
 
-    async fn sample_get(&self, id: i64) -> Result<SampleDetail, ErrorResult> {
-        let sql = "select id, name, description, amount, version, created_at
-            from sample
+    async fn sample_get(
+        &self,
+        id: i64,
+        translate: bool,
+        language: &Option<String>,
+    ) -> Result<SampleDetail, ErrorResult> {
+        let sql = "
+            select
+                s.id,
+                coalesce(t.name, s.name) name,
+                coalesce(t.description, s.description) description,
+                amount,
+                version,
+                created_at
+            from sample s
+            left join lateral (
+                select name, description
+                from sample_translation
+                where id = s.id
+                order by (language = $3)::int desc, ordinal
+                limit 1
+            ) t on $2
             where id = $1 and deleted_at is null";
 
         query_as(sql)
             .bind(id)
+            .bind(translate)
+            .bind(language)
             .fetch_one(&self.pool)
             .await
             .map_err(|error| resource_error(id, "/data/sample", error))
