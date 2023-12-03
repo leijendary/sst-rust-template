@@ -18,3 +18,19 @@
 5. Run `npm run dev` using your terminal or use VSCode's **Run and Debug** tab.
 
 For more information, go to https://sst.dev
+
+# Deploying:
+
+## Pre-requisites:
+
+Run the following commands before deploying:
+
+1. `brew tap cargo-lambda/cargo-lambda`
+2. `brew install cargo-lambda`
+3. `brew install zig`
+
+## Deploy to stage:
+
+`npm run deploy -- --stage <stage>`
+
+Where `<stage>` is the name of the environment. Example: `prod`.

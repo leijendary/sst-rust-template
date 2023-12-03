@@ -22,10 +22,24 @@ export function CustomerApiStack({ stack }: StackContext) {
       },
     },
     routes: {
-      "GET /api/v1/samples": "functions/api/v1/samples/sample_seek.rs",
+      "GET /api/v1/samples": {
+        function: {
+          handler: "functions/api/v1/samples/sample_seek.rs",
+          description: "Customer: Seek pagination of sample records.",
+        },
+      },
+      "GET /api/v1/samples/{id}": {
+        function: {
+          handler: "functions/api/v1/samples/sample_get.rs",
+          description: "Customer: Get a single sample record.",
+        },
+      },
       $default: {
         authorizer: "none",
-        function: "functions/api/default.rs",
+        function: {
+          handler: "functions/api/default.rs",
+          description: "Admin: Default route handler.",
+        },
       },
     },
   });
