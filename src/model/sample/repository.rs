@@ -17,6 +17,8 @@ use crate::{
     response::seek::Seekable,
 };
 
+const POINTER: &str = "/data/sample";
+
 pub struct SampleSeekFilter {
     pub language: Option<String>,
     pub query: Option<String>,
@@ -296,7 +298,7 @@ impl SampleRepository for PostgresRepository {
             .bind(language)
             .fetch_one(&self.pool)
             .await
-            .map_err(|error| resource_error(id, "/data/sample", None, error))
+            .map_err(|error| resource_error(id, POINTER, None, error))
     }
 
     async fn sample_update(
@@ -326,7 +328,7 @@ impl SampleRepository for PostgresRepository {
             .bind(&sample.last_modified_by)
             .fetch_one(&mut **tx)
             .await
-            .map_err(|error| resource_error(id, "/data/sample", Some(version), error))
+            .map_err(|error| resource_error(id, POINTER, Some(version), error))
     }
 
     async fn sample_delete(
@@ -347,10 +349,10 @@ impl SampleRepository for PostgresRepository {
             .bind(user_id)
             .execute(&self.pool)
             .await
-            .map_err(|error| resource_error(id, "/data/sample", Some(version), error))?;
+            .map_err(|error| resource_error(id, POINTER, Some(version), error))?;
 
         if result.rows_affected() == 0 {
-            return Err(version_conflict(id, "/data/sample", version));
+            return Err(version_conflict(id, POINTER, version));
         }
 
         Ok(())
