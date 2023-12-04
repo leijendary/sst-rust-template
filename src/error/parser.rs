@@ -1,4 +1,4 @@
-use super::result::{ErrorDetail, ErrorResult};
+use super::result::{resource_not_found, version_conflict, ErrorDetail, ErrorResult};
 use crate::error::result::{internal_server, ErrorSource};
 use convert_case::{Case, Casing};
 use lazy_static::lazy_static;
@@ -21,25 +21,14 @@ lazy_static! {
         Regex::new(r"Key \((?:lower\()?([a-zA-Z0-9, ]+)+(?:::text)?\)").unwrap();
 }
 
-pub fn resource_error(id: i64, pointer: &str, err: Error) -> ErrorResult {
+pub fn resource_error(id: i64, pointer: &str, version: Option<i16>, err: Error) -> ErrorResult {
     if !matches!(err, Error::RowNotFound) {
         return database_error(err);
     }
 
-    let error = ErrorDetail {
-        id: Some(id.to_string()),
-        code: "not_found".to_string(),
-        source: ErrorSource {
-            pointer: Some(pointer.to_owned()),
-            parameter: None,
-            header: None,
-            meta: None,
-        },
-    };
-
-    ErrorResult {
-        status: 404,
-        errors: vec![error],
+    match version {
+        Some(version) => version_conflict(id, pointer, version),
+        None => resource_not_found(id, pointer),
     }
 }
 
@@ -81,7 +70,7 @@ fn parse_detail(err: &PgDatabaseError) -> (u16, ErrorDetail) {
         CheckViolation => (400, "invalid".to_string(), "".to_string()),
         Other | _ => (500, "server_internal".to_string(), "/server".to_string()),
     };
-    let detail = ErrorDetail {
+    let error = ErrorDetail {
         id: None,
         code,
         source: ErrorSource {
@@ -92,5 +81,5 @@ fn parse_detail(err: &PgDatabaseError) -> (u16, ErrorDetail) {
         },
     };
 
-    (status, detail)
+    (status, error)
 }

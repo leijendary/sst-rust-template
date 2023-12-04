@@ -40,8 +40,13 @@ export function AdminApiStack({ stack }: StackContext) {
           description: "Admin: Get a single sample record.",
         },
       },
-      /* "PUT /api/admin/samples/{id}": "functions/api/admin/samples/update",
-      "DELETE /api/admin/samples/{id}": "functions/api/admin/samples/delete", */
+      "PUT /api/admin/samples/{id}": {
+        function: {
+          handler: "functions/api/admin/samples/admin_sample_update.rs",
+          description: "Admin: Update a specific single sample record.",
+        },
+      },
+      /* "DELETE /api/admin/samples/{id}": "functions/api/admin/samples/delete", */
       $default: {
         authorizer: "none",
         function: {

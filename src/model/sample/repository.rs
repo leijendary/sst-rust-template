@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use serde_trim::option_string_trim;
 use serde_with::skip_serializing_none;
-use sqlx::{query_as, FromRow, Postgres, Transaction};
+use sqlx::{query, query_as, FromRow, Postgres, Transaction};
 use time::OffsetDateTime;
 use validator::Validate;
 
@@ -45,7 +45,7 @@ impl Seekable for SampleList {
 }
 
 #[derive(Debug, Validate, Deserialize)]
-pub struct SampleCreate {
+pub struct SampleRequest {
     #[serde(default, deserialize_with = "option_string_trim")]
     #[validate(required, length(min = 1, max = 100))]
     pub name: Option<String>,
@@ -133,7 +133,7 @@ pub trait SampleRepository {
     async fn sample_create(
         &self,
         tx: &mut Transaction<Postgres>,
-        sample: &SampleCreate,
+        sample: &SampleRequest,
     ) -> Result<SampleDetail, ErrorResult>;
 
     async fn sample_get(
@@ -143,12 +143,27 @@ pub trait SampleRepository {
         language: &Option<String>,
     ) -> Result<SampleDetail, ErrorResult>;
 
+    async fn sample_update(
+        &self,
+        tx: &mut Transaction<Postgres>,
+        id: i64,
+        sample: &SampleRequest,
+        version: i16,
+    ) -> Result<SampleDetail, ErrorResult>;
+
     async fn sample_translations_list(
         &self,
         id: i64,
     ) -> Result<Vec<SampleTranslation>, ErrorResult>;
 
     async fn sample_translations_create(
+        &self,
+        tx: &mut Transaction<Postgres>,
+        id: i64,
+        translations: &Vec<SampleTranslation>,
+    ) -> Result<Vec<SampleTranslation>, ErrorResult>;
+
+    async fn sample_translations_update(
         &self,
         tx: &mut Transaction<Postgres>,
         id: i64,
@@ -227,7 +242,7 @@ impl SampleRepository for PostgresRepository {
     async fn sample_create(
         &self,
         tx: &mut Transaction<Postgres>,
-        sample: &SampleCreate,
+        sample: &SampleRequest,
     ) -> Result<SampleDetail, ErrorResult> {
         let sql = "insert into sample (name, description, amount, created_by, last_modified_by)
             values ($1, $2, $3, $4, $5)
@@ -274,7 +289,37 @@ impl SampleRepository for PostgresRepository {
             .bind(language)
             .fetch_one(&self.pool)
             .await
-            .map_err(|error| resource_error(id, "/data/sample", error))
+            .map_err(|error| resource_error(id, "/data/sample", None, error))
+    }
+
+    async fn sample_update(
+        &self,
+        tx: &mut Transaction<Postgres>,
+        id: i64,
+        sample: &SampleRequest,
+        version: i16,
+    ) -> Result<SampleDetail, ErrorResult> {
+        let sql = "update sample
+            set
+                name = $3,
+                description = $4,
+                amount = $5,
+                version = version + 1,
+                last_modified_at = now(),
+                last_modified_by = $6
+            where id = $1 and version = $2
+            returning id, name, description, amount, version, created_at, created_by, last_modified_at, last_modified_by";
+
+        query_as(sql)
+            .bind(id)
+            .bind(version)
+            .bind(&sample.name)
+            .bind(&sample.description)
+            .bind(&sample.amount)
+            .bind(&sample.last_modified_by)
+            .fetch_one(&mut **tx)
+            .await
+            .map_err(|error| resource_error(id, "/data/sample", Some(version), error))
     }
 
     async fn sample_translations_list(
@@ -299,7 +344,7 @@ impl SampleRepository for PostgresRepository {
         translations: &Vec<SampleTranslation>,
     ) -> Result<Vec<SampleTranslation>, ErrorResult> {
         let sql = "insert into sample_translation (id, name, description, language, ordinal)
-            select * from unnest ($1::int[], $2::text[], $3::text[], $4::text[], $5::smallint[])
+            select * from unnest($1::int[], $2::text[], $3::text[], $4::text[], $5::smallint[])
             returning name, description, language, ordinal";
         let len = translations.len();
         let mut ids = Vec::with_capacity(len);
@@ -310,18 +355,73 @@ impl SampleRepository for PostgresRepository {
 
         for translation in translations {
             ids.push(id);
-            names.push(translation.name.to_owned());
+            names.push(translation.name.to_owned().unwrap());
             descriptions.push(translation.description.to_owned());
-            languages.push(translation.language.to_owned());
-            ordinals.push(translation.ordinal.to_owned());
+            languages.push(translation.language.to_owned().unwrap());
+            ordinals.push(translation.ordinal.unwrap());
         }
 
         query_as(sql)
-            .bind(&ids[..])
-            .bind(&names as &[Option<String>])
+            .bind(ids)
+            .bind(names)
             .bind(&descriptions as &[Option<String>])
-            .bind(&languages as &[Option<String>])
-            .bind(&ordinals as &[Option<i16>])
+            .bind(languages)
+            .bind(ordinals)
+            .fetch_all(&mut **tx)
+            .await
+            .map_err(|error| database_error(error))
+    }
+
+    async fn sample_translations_update(
+        &self,
+        tx: &mut Transaction<Postgres>,
+        id: i64,
+        translations: &Vec<SampleTranslation>,
+    ) -> Result<Vec<SampleTranslation>, ErrorResult> {
+        let mut sql = "delete from sample_translation where id = $1 and language <> all($2)";
+        let languages: Vec<String> = translations
+            .into_iter()
+            .map(|translation| translation.language())
+            .collect();
+
+        query(sql)
+            .bind(id)
+            .bind(languages)
+            .execute(&mut **tx)
+            .await
+            .map_err(|error| database_error(error))?;
+
+        sql = "insert into sample_translation (id, name, description, language, ordinal)
+            select * from unnest($1::int[], $2::text[], $3::text[], $4::text[], $5::smallint[])
+            on conflict (id, language)
+            do update
+            set
+                name = excluded.name,
+                description = excluded.description,
+                language = excluded.language,
+                ordinal = excluded.ordinal
+            returning name, description, language, ordinal";
+        let len = translations.len();
+        let mut ids = Vec::with_capacity(len);
+        let mut names = Vec::with_capacity(len);
+        let mut descriptions = Vec::with_capacity(len);
+        let mut languages = Vec::with_capacity(len);
+        let mut ordinals = Vec::with_capacity(len);
+
+        for translation in translations {
+            ids.push(id);
+            names.push(translation.name.to_owned().unwrap());
+            descriptions.push(translation.description.to_owned());
+            languages.push(translation.language.to_owned().unwrap());
+            ordinals.push(translation.ordinal.to_owned().unwrap());
+        }
+
+        query_as(sql)
+            .bind(ids)
+            .bind(names)
+            .bind(&descriptions as &[Option<String>])
+            .bind(languages)
+            .bind(ordinals)
             .fetch_all(&mut **tx)
             .await
             .map_err(|error| database_error(error))

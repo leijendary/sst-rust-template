@@ -5,13 +5,20 @@ use sst_rust::{
     database::postgres::{connect_postgres, PostgresRepository},
     error::result::required_body,
     model::sample::{repository::SampleRequest, service::SampleService},
-    request::{context::get_user_id, validator::validate},
+    request::{context::get_user_id, path::path_param, query::query_version, validator::validate},
     response::json::{error_response, json_response},
     storage::secret::secret_client,
 };
 
 async fn handler(service: &SampleService, event: Request) -> Result<Response<Body>, Error> {
-    let user_id = get_user_id(&event);
+    let id = match path_param::<i64>(&event, "id") {
+        Ok(id) => id,
+        Err(error) => return error_response(error),
+    };
+    let version = match query_version(&event) {
+        Ok(version) => version,
+        Err(error) => return error_response(error),
+    };
     let mut sample = match event.payload::<SampleRequest>()? {
         Some(value) => value,
         None => return error_response(required_body()),
@@ -22,10 +29,9 @@ async fn handler(service: &SampleService, event: Request) -> Result<Response<Bod
         Err(error) => return error_response(error),
     }
 
-    sample.created_by = user_id.to_owned();
-    sample.last_modified_by = user_id.to_owned();
+    sample.last_modified_by = get_user_id(&event);
 
-    let result = service.create(&sample).await;
+    let result = service.update(id, &sample, version).await;
 
     json_response(201, result)
 }

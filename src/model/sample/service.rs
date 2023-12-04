@@ -8,7 +8,7 @@ use crate::{
 };
 
 use super::repository::{
-    SampleCreate, SampleDetail, SampleList, SampleRepository, SampleSeekFilter,
+    SampleDetail, SampleList, SampleRepository, SampleRequest, SampleSeekFilter,
 };
 
 pub struct SampleService {
@@ -39,7 +39,7 @@ impl SampleService {
         Ok(Page::new(list, count, &page_request))
     }
 
-    pub async fn create(&self, request: &SampleCreate) -> Result<SampleDetail, ErrorResult> {
+    pub async fn create(&self, request: &SampleRequest) -> Result<SampleDetail, ErrorResult> {
         let translations = request.translations.as_ref().unwrap();
         let mut tx = begin(&self.repository.pool).await?;
         let mut sample = self.repository.sample_create(&mut tx, request).await?;
@@ -62,15 +62,38 @@ impl SampleService {
         translate: bool,
         language: &Option<String>,
     ) -> Result<SampleDetail, ErrorResult> {
-        let sample_get_fut = self.repository.sample_get(id, translate, language);
+        let sample_fut = self.repository.sample_get(id, translate, language);
 
         if translate {
-            return sample_get_fut.await;
+            return sample_fut.await;
         }
 
-        let (mut sample, translations) =
-            try_join!(sample_get_fut, self.repository.sample_translations_list(id))?;
+        let translations_fut = self.repository.sample_translations_list(id);
+        let (mut sample, translations) = try_join!(sample_fut, translations_fut)?;
         sample.translations = Some(translations);
+
+        Ok(sample)
+    }
+
+    pub async fn update(
+        &self,
+        id: i64,
+        request: &SampleRequest,
+        version: i16,
+    ) -> Result<SampleDetail, ErrorResult> {
+        let translations = request.translations.as_ref().unwrap();
+        let mut tx = begin(&self.repository.pool).await?;
+        let mut sample = self
+            .repository
+            .sample_update(&mut tx, id, request, version)
+            .await?;
+        sample.translations = self
+            .repository
+            .sample_translations_update(&mut tx, id, translations)
+            .await
+            .map(|translations| Some(translations))?;
+
+        commit(tx).await?;
 
         Ok(sample)
     }

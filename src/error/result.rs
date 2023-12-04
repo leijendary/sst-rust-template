@@ -82,7 +82,7 @@ pub fn required_parameter(name: &str) -> ErrorResult {
 }
 
 pub fn invalid_parameter(name: &str) -> ErrorResult {
-    let error: ErrorDetail = ErrorDetail {
+    let error = ErrorDetail {
         id: None,
         code: "invalid".to_string(),
         source: ErrorSource {
@@ -95,6 +95,43 @@ pub fn invalid_parameter(name: &str) -> ErrorResult {
 
     ErrorResult {
         status: 400,
+        errors: vec![error],
+    }
+}
+
+pub fn resource_not_found(id: i64, pointer: &str) -> ErrorResult {
+    let error = ErrorDetail {
+        id: Some(id.to_string()),
+        code: "not_found".to_string(),
+        source: ErrorSource {
+            pointer: Some(pointer.to_owned()),
+            parameter: None,
+            header: None,
+            meta: None,
+        },
+    };
+
+    ErrorResult {
+        status: 404,
+        errors: vec![error],
+    }
+}
+
+pub fn version_conflict(id: i64, pointer: &str, version: i16) -> ErrorResult {
+    let meta = HashMap::from([(Cow::from("version"), Value::from(version))]);
+    let error = ErrorDetail {
+        id: Some(id.to_string()),
+        code: "version_conflict".to_string(),
+        source: ErrorSource {
+            pointer: Some(pointer.to_owned()),
+            parameter: None,
+            header: None,
+            meta: Some(meta),
+        },
+    };
+
+    ErrorResult {
+        status: 409,
         errors: vec![error],
     }
 }
