@@ -10,7 +10,7 @@ use crate::{
     database::postgres::PostgresRepository,
     error::{
         parser::{database_error, resource_error},
-        result::ErrorResult,
+        result::{version_conflict, ErrorResult},
     },
     model::translation::Translation,
     request::{page::PageRequest, seek::SeekRequest, validator::validate_unique_translation},
@@ -22,12 +22,12 @@ pub struct SampleSeekFilter {
     pub query: Option<String>,
 }
 
-#[skip_serializing_none]
 #[derive(FromRow, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SampleList {
     pub id: i64,
     pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     pub amount: i32,
     #[serde(with = "time::serde::rfc3339")]
@@ -150,6 +150,13 @@ pub trait SampleRepository {
         sample: &SampleRequest,
         version: i16,
     ) -> Result<SampleDetail, ErrorResult>;
+
+    async fn sample_delete(
+        &self,
+        id: i64,
+        version: i16,
+        user_id: String,
+    ) -> Result<(), ErrorResult>;
 
     async fn sample_translations_list(
         &self,
@@ -320,6 +327,33 @@ impl SampleRepository for PostgresRepository {
             .fetch_one(&mut **tx)
             .await
             .map_err(|error| resource_error(id, "/data/sample", Some(version), error))
+    }
+
+    async fn sample_delete(
+        &self,
+        id: i64,
+        version: i16,
+        user_id: String,
+    ) -> Result<(), ErrorResult> {
+        let sql = "update sample
+            set
+                version = version + 1,
+                deleted_by = $3,
+                deleted_at = now()
+            where id = $1 and version = $2";
+        let result = query(sql)
+            .bind(id)
+            .bind(version)
+            .bind(user_id)
+            .execute(&self.pool)
+            .await
+            .map_err(|error| resource_error(id, "/data/sample", Some(version), error))?;
+
+        if result.rows_affected() == 0 {
+            return Err(version_conflict(id, "/data/sample", version));
+        }
+
+        Ok(())
     }
 
     async fn sample_translations_list(

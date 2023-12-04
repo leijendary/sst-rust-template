@@ -21,6 +21,7 @@ export default {
       architecture: "arm_64",
       logRetention: app.stage === "prod" ? "three_months" : "one_week",
       runtime: "rust",
+      timeout: "30 seconds",
     });
     app
       .stack(DatabaseStack)

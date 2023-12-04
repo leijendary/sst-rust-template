@@ -55,6 +55,10 @@ path = "functions/api/admin/samples/admin_sample_get.rs"
 name = "admin_sample_update"
 path = "functions/api/admin/samples/admin_sample_update.rs"
 
+[[bin]]
+name = "admin_sample_delete"
+path = "functions/api/admin/samples/admin_sample_delete.rs"
+
 # Customer APIs
 [[bin]]
 name = "sample_seek"

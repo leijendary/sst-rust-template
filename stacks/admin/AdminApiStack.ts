@@ -46,7 +46,12 @@ export function AdminApiStack({ stack }: StackContext) {
           description: "Admin: Update a specific single sample record.",
         },
       },
-      /* "DELETE /api/admin/samples/{id}": "functions/api/admin/samples/delete", */
+      "DELETE /api/admin/samples/{id}": {
+        function: {
+          handler: "functions/api/admin/samples/admin_sample_delete.rs",
+          description: "Admin: Soft delete a specific single sample record.",
+        },
+      },
       $default: {
         authorizer: "none",
         function: {

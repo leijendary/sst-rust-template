@@ -97,4 +97,8 @@ impl SampleService {
 
         Ok(sample)
     }
+
+    pub async fn delete(&self, id: i64, version: i16, user_id: String) -> Result<(), ErrorResult> {
+        self.repository.sample_delete(id, version, user_id).await
+    }
 }
