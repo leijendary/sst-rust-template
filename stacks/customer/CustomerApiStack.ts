@@ -38,7 +38,7 @@ export function CustomerApiStack({ stack }: StackContext) {
         authorizer: "none",
         function: {
           handler: "functions/api/default.rs",
-          description: "Admin: Default route handler.",
+          description: "Customer: Default route handler.",
         },
       },
     },
