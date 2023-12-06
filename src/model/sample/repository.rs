@@ -449,7 +449,7 @@ impl SampleRepository for PostgresRepository {
             names.push(translation.name.to_owned().unwrap());
             descriptions.push(translation.description.to_owned());
             languages.push(translation.language.to_owned().unwrap());
-            ordinals.push(translation.ordinal.to_owned().unwrap());
+            ordinals.push(translation.ordinal.unwrap());
         }
 
         query_as(sql)

@@ -10,7 +10,7 @@ pub fn get_user_id(request: &Request) -> String {
             .claims
             .get("sub")
             .unwrap()
-            .to_owned(),
+            .to_string(),
         RequestContext::ApiGatewayV1(_) => todo!(),
         RequestContext::Alb(_) => todo!(),
         RequestContext::WebSocket(_) => todo!(),

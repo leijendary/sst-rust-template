@@ -22,8 +22,8 @@ async fn handler(service: &SampleService, event: Request) -> Result<Response<Bod
         Err(error) => return error_response(error),
     }
 
-    sample.created_by = user_id.to_owned();
-    sample.last_modified_by = user_id.to_owned();
+    sample.created_by = user_id.to_string();
+    sample.last_modified_by = user_id.to_string();
 
     let result = service.create(&sample).await;
 

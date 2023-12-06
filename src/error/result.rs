@@ -104,7 +104,7 @@ pub fn resource_not_found(id: i64, pointer: &str) -> ErrorResult {
         id: Some(id.to_string()),
         code: "not_found".to_string(),
         source: ErrorSource {
-            pointer: Some(pointer.to_owned()),
+            pointer: Some(pointer.to_string()),
             parameter: None,
             header: None,
             meta: None,
@@ -123,7 +123,7 @@ pub fn version_conflict(id: i64, pointer: &str, version: i16) -> ErrorResult {
         id: Some(id.to_string()),
         code: "version_conflict".to_string(),
         source: ErrorSource {
-            pointer: Some(pointer.to_owned()),
+            pointer: Some(pointer.to_string()),
             parameter: None,
             header: None,
             meta: Some(meta),
