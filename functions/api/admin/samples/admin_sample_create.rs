@@ -11,7 +11,10 @@ use sst_rust::{
 };
 
 async fn handler(service: &SampleService, event: Request) -> Result<Response<Body>, Error> {
-    let user_id = get_user_id(&event);
+    let user_id = match get_user_id(&event) {
+        Ok(user_id) => user_id,
+        Err(error) => return error_response(error),
+    };
     let mut sample = match event.payload::<SampleRequest>()? {
         Some(value) => value,
         None => return error_response(required_body()),
@@ -22,8 +25,8 @@ async fn handler(service: &SampleService, event: Request) -> Result<Response<Bod
         Err(error) => return error_response(error),
     }
 
-    sample.created_by = user_id.to_string();
-    sample.last_modified_by = user_id.to_string();
+    sample.created_by = user_id.to_owned();
+    sample.last_modified_by = user_id.to_owned();
 
     let result = service.create(&sample).await;
 

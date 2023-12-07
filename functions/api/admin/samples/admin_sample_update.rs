@@ -11,6 +11,10 @@ use sst_rust::{
 };
 
 async fn handler(service: &SampleService, event: Request) -> Result<Response<Body>, Error> {
+    let user_id = match get_user_id(&event) {
+        Ok(user_id) => user_id,
+        Err(error) => return error_response(error),
+    };
     let id = match path_param::<i64>(&event, "id") {
         Ok(id) => id,
         Err(error) => return error_response(error),
@@ -26,7 +30,7 @@ async fn handler(service: &SampleService, event: Request) -> Result<Response<Bod
         Err(error) => return error_response(error),
     }
 
-    sample.last_modified_by = get_user_id(&event);
+    sample.last_modified_by = user_id;
 
     let result = service.update(id, &sample, version).await;
 

@@ -10,12 +10,15 @@ use sst_rust::{
 };
 
 async fn handler(service: &SampleService, event: Request) -> Result<Response<Body>, Error> {
+    let user_id = match get_user_id(&event) {
+        Ok(user_id) => user_id,
+        Err(error) => return error_response(error),
+    };
     let id = match path_param::<i64>(&event, "id") {
         Ok(id) => id,
         Err(error) => return error_response(error),
     };
     let version = query_version(&event);
-    let user_id = get_user_id(&event);
     let result = service.delete(id, version, user_id).await;
 
     json_response(204, result)

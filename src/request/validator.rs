@@ -104,12 +104,13 @@ fn map_field_errors(field: &str, errors: &Vec<ValidationError>) -> Vec<ErrorDeta
             } else {
                 None
             };
+            let pointer = format!("/body/{field}");
 
             ErrorDetail {
                 id: None,
-                code: err.code.to_string(),
+                code: err.code.to_owned(),
                 source: ErrorSource {
-                    pointer: Some(format!("/body/{field}")),
+                    pointer: Some(Cow::from(pointer)),
                     header: None,
                     parameter: None,
                     meta,

@@ -13,15 +13,21 @@ use sqlx::{
     postgres::PgDatabaseError,
     Error,
 };
-use std::vec;
+use std::{borrow::Cow, vec};
 use tracing::error;
 
 lazy_static! {
     static ref UNIQUE_REGEX: Regex =
-        Regex::new(r"Key \((?:lower\()?([a-zA-Z0-9, ]+)+(?:::text)?\)").unwrap();
+        Regex::new(r"Key \((?:lower\()?([a-zA-Z0-9, ]+)+(?:::text)?\)")
+            .expect("UNIQUE_REGEX is not a valid pattern");
 }
 
-pub fn resource_error(id: i64, pointer: &str, version: Option<i16>, err: Error) -> ErrorResult {
+pub fn resource_error(
+    id: i64,
+    pointer: &'static str,
+    version: Option<i16>,
+    err: Error,
+) -> ErrorResult {
     if !matches!(err, Error::RowNotFound) {
         return database_error(err);
     }
@@ -36,7 +42,7 @@ pub fn database_error(err: Error) -> ErrorResult {
     let (status, detail) = match err.as_database_error() {
         Some(err) => parse_detail(err.downcast_ref()),
         None => {
-            error!(target: "database_error", "Something failed in the database. {}", err.to_string());
+            error!(target: "database_error", "Something failed in the database. {:?}", err);
             return internal_server();
         }
     };
@@ -51,30 +57,17 @@ fn parse_detail(err: &PgDatabaseError) -> (u16, ErrorDetail) {
     error!(target: "database_error", "Failed to execute a database query {:?}", err);
 
     let (status, code, pointer) = match err.kind() {
-        UniqueViolation => {
-            let table = err.table().unwrap_or("").to_string();
-            let field = UNIQUE_REGEX
-                .captures(err.detail().unwrap())
-                .map(|m| m.get(1).unwrap().as_str())
-                .unwrap()
-                .split(", ")
-                .last()
-                .unwrap()
-                .to_case(Case::Camel);
-            let pointer = format!("/data/{table}/{field}");
-
-            (409, "duplicate".to_string(), pointer)
-        }
-        ForeignKeyViolation => (404, "not_found".to_string(), "".to_string()),
-        NotNullViolation => (400, "required".to_string(), "".to_string()),
-        CheckViolation => (400, "invalid".to_string(), "".to_string()),
-        Other | _ => (500, "server_internal".to_string(), "/server".to_string()),
+        UniqueViolation => unique_violation(err),
+        ForeignKeyViolation => foreign_key_violation(err),
+        NotNullViolation => not_null_violation(err),
+        CheckViolation => check_violation(err),
+        Other | _ => other_violation(err),
     };
     let error = ErrorDetail {
         id: None,
-        code,
+        code: Cow::from(code),
         source: ErrorSource {
-            pointer: Some(pointer),
+            pointer: Some(Cow::from(pointer)),
             parameter: None,
             header: None,
             meta: None,
@@ -82,4 +75,56 @@ fn parse_detail(err: &PgDatabaseError) -> (u16, ErrorDetail) {
     };
 
     (status, error)
+}
+
+fn unique_violation(err: &PgDatabaseError) -> (u16, String, String) {
+    let status = 409;
+    let code = "duplicate".to_owned();
+    let mut pointer = "/data".to_owned();
+    let table = match err.table() {
+        Some(table) => table,
+        None => {
+            error!(target: "unique_violation", "Unique violation but no table defined. {:?}", err);
+            return (status, code, pointer);
+        }
+    };
+    let detail = match err.detail() {
+        Some(detail) => detail,
+        None => {
+            error!(target: "unique_violation", "Unique violation but no detail defined. {:?}", err);
+            return (status, code, pointer);
+        }
+    };
+    let matched = UNIQUE_REGEX
+        .captures(detail)
+        .and_then(|m| m.get(1))
+        .map(|m| m.as_str())
+        .and_then(|s| s.split(", ").last())
+        .map(|s| s.to_case(Case::Camel));
+    let field = match matched {
+        Some(field) => field,
+        None => {
+            error!(target: "unique_violation", "Unique violation but no field found. {:?}", err);
+            return (status, code, pointer);
+        }
+    };
+    pointer = format!("{pointer}/{table}/{field}");
+
+    (status, code, pointer)
+}
+
+fn foreign_key_violation(_: &PgDatabaseError) -> (u16, String, String) {
+    todo!()
+}
+
+fn not_null_violation(_: &PgDatabaseError) -> (u16, String, String) {
+    todo!()
+}
+
+fn check_violation(_: &PgDatabaseError) -> (u16, String, String) {
+    todo!()
+}
+
+fn other_violation(_: &PgDatabaseError) -> (u16, String, String) {
+    todo!()
 }

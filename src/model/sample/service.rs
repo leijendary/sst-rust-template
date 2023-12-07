@@ -40,12 +40,11 @@ impl SampleService {
     }
 
     pub async fn create(&self, request: &SampleRequest) -> Result<SampleDetail, ErrorResult> {
-        let translations = request.translations.as_ref().unwrap();
         let mut tx = begin(&self.repository.pool).await?;
         let mut sample = self.repository.sample_create(&mut tx, request).await?;
         sample.translations = self
             .repository
-            .sample_translations_create(&mut tx, sample.id, translations)
+            .sample_translations_create(&mut tx, sample.id, &request.translations)
             .await
             .map(|translations| Some(translations))?;
 
@@ -81,7 +80,6 @@ impl SampleService {
         request: &SampleRequest,
         version: i16,
     ) -> Result<SampleDetail, ErrorResult> {
-        let translations = request.translations.as_ref().unwrap();
         let mut tx = begin(&self.repository.pool).await?;
         let mut sample = self
             .repository
@@ -89,7 +87,7 @@ impl SampleService {
             .await?;
         sample.translations = self
             .repository
-            .sample_translations_update(&mut tx, id, translations)
+            .sample_translations_update(&mut tx, id, &request.translations)
             .await
             .map(|translations| Some(translations))?;
 

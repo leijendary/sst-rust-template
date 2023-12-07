@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use serde_trim::option_string_trim;
+use serde_trim::{option_string_trim, string_trim};
 use serde_with::skip_serializing_none;
 use sqlx::{query, query_as, FromRow, Postgres, Transaction};
 use time::OffsetDateTime;
@@ -17,7 +17,7 @@ use crate::{
     response::seek::Seekable,
 };
 
-const POINTER: &str = "/data/sample";
+const POINTER: &'static str = "/data/sample";
 
 pub struct SampleSeekFilter {
     pub language: Option<String>,
@@ -48,20 +48,18 @@ impl Seekable for SampleList {
 
 #[derive(Debug, Validate, Deserialize)]
 pub struct SampleRequest {
-    #[serde(default, deserialize_with = "option_string_trim")]
-    #[validate(required, length(min = 1, max = 100))]
-    pub name: Option<String>,
+    #[serde(default, deserialize_with = "string_trim")]
+    #[validate(length(min = 1, max = 100))]
+    pub name: String,
     #[serde(default, deserialize_with = "option_string_trim")]
     pub description: Option<String>,
-    #[validate(required, range(min = 1, max = 99999999))]
-    pub amount: Option<i32>,
-    #[validate(
-        required,
-        length(min = 1, max = 100),
-        custom = "validate_unique_translation"
-    )]
+    #[serde(default)]
+    #[validate(range(min = 1, max = 99999999))]
+    pub amount: i32,
+    #[serde(default)]
+    #[validate(length(min = 1, max = 100), custom = "validate_unique_translation")]
     #[validate]
-    pub translations: Option<Vec<SampleTranslation>>,
+    pub translations: Vec<SampleTranslation>,
     #[serde(skip)]
     pub created_by: String,
     #[serde(skip)]
@@ -70,9 +68,9 @@ pub struct SampleRequest {
 
 #[derive(Debug, FromRow, Validate, Serialize, Deserialize)]
 pub struct SampleTranslation {
-    #[serde(default, deserialize_with = "option_string_trim")]
-    #[validate(required, length(min = 1, max = 100))]
-    pub name: Option<String>,
+    #[serde(default, deserialize_with = "string_trim")]
+    #[validate(length(min = 1, max = 100))]
+    pub name: String,
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
@@ -80,20 +78,20 @@ pub struct SampleTranslation {
     )]
     #[validate(length(max = 200))]
     pub description: Option<String>,
-    #[serde(default, deserialize_with = "option_string_trim")]
-    #[validate(required, length(min = 2, max = 4))]
-    pub language: Option<String>,
-    #[validate(required, range(min = 1, max = 100))]
-    pub ordinal: Option<i16>,
+    #[serde(default, deserialize_with = "string_trim")]
+    #[validate(length(min = 2, max = 4))]
+    pub language: String,
+    #[validate(range(min = 1, max = 100))]
+    pub ordinal: i16,
 }
 
 impl Translation for SampleTranslation {
     fn language(&self) -> String {
-        self.language.to_owned().unwrap_or_default()
+        self.language.to_owned()
     }
 
     fn ordinal(&self) -> i16 {
-        self.ordinal.to_owned().unwrap_or_default()
+        self.ordinal.to_owned()
     }
 }
 
@@ -383,18 +381,18 @@ impl SampleRepository for PostgresRepository {
             select * from unnest($1::int[], $2::text[], $3::text[], $4::text[], $5::smallint[])
             returning name, description, language, ordinal";
         let len = translations.len();
-        let mut ids = Vec::with_capacity(len);
-        let mut names = Vec::with_capacity(len);
-        let mut descriptions = Vec::with_capacity(len);
-        let mut languages = Vec::with_capacity(len);
-        let mut ordinals = Vec::with_capacity(len);
+        let mut ids: Vec<i64> = Vec::with_capacity(len);
+        let mut names: Vec<String> = Vec::with_capacity(len);
+        let mut descriptions: Vec<Option<String>> = Vec::with_capacity(len);
+        let mut languages: Vec<String> = Vec::with_capacity(len);
+        let mut ordinals: Vec<i16> = Vec::with_capacity(len);
 
         for translation in translations {
             ids.push(id);
-            names.push(translation.name.to_owned().unwrap());
+            names.push(translation.name.to_owned());
             descriptions.push(translation.description.to_owned());
-            languages.push(translation.language.to_owned().unwrap());
-            ordinals.push(translation.ordinal.unwrap());
+            languages.push(translation.language.to_owned());
+            ordinals.push(translation.ordinal);
         }
 
         query_as(sql)
@@ -415,10 +413,10 @@ impl SampleRepository for PostgresRepository {
         translations: &Vec<SampleTranslation>,
     ) -> Result<Vec<SampleTranslation>, ErrorResult> {
         let mut sql = "delete from sample_translation where id = $1 and language <> all($2)";
-        let languages: Vec<String> = translations
+        let languages = translations
             .into_iter()
             .map(|translation| translation.language())
-            .collect();
+            .collect::<Vec<String>>();
 
         query(sql)
             .bind(id)
@@ -438,18 +436,18 @@ impl SampleRepository for PostgresRepository {
                 ordinal = excluded.ordinal
             returning name, description, language, ordinal";
         let len = translations.len();
-        let mut ids = Vec::with_capacity(len);
-        let mut names = Vec::with_capacity(len);
-        let mut descriptions = Vec::with_capacity(len);
-        let mut languages = Vec::with_capacity(len);
-        let mut ordinals = Vec::with_capacity(len);
+        let mut ids: Vec<i64> = Vec::with_capacity(len);
+        let mut names: Vec<String> = Vec::with_capacity(len);
+        let mut descriptions: Vec<Option<String>> = Vec::with_capacity(len);
+        let mut languages: Vec<String> = Vec::with_capacity(len);
+        let mut ordinals: Vec<i16> = Vec::with_capacity(len);
 
         for translation in translations {
             ids.push(id);
-            names.push(translation.name.to_owned().unwrap());
+            names.push(translation.name.to_owned());
             descriptions.push(translation.description.to_owned());
-            languages.push(translation.language.to_owned().unwrap());
-            ordinals.push(translation.ordinal.unwrap());
+            languages.push(translation.language.to_owned());
+            ordinals.push(translation.ordinal);
         }
 
         query_as(sql)

@@ -31,7 +31,7 @@ pub async fn rollback(tx: Transaction<'_, Postgres>) -> Result<(), ErrorResult> 
 
 pub async fn connect_postgres(client: &Client) -> PgPool {
     let url = match env::var_os(DATABASE_URL) {
-        Some(url) => url.into_string().unwrap(),
+        Some(url) => url.into_string().expect("DATABASE_URL is not set"),
         None => url_from_secret(client).await,
     };
 
@@ -45,12 +45,14 @@ pub async fn connect_postgres(client: &Client) -> PgPool {
 async fn url_from_secret(client: &Client) -> String {
     let prefix = env::var("SST_SSM_PREFIX").expect("SST_SSM_PREFIX is not set");
     let key = format!("{prefix}Secret/{DATABASE_URL}/value");
-    let value = client
+
+    client
         .get_secret_value()
         .secret_id(key)
         .send()
         .await
-        .unwrap();
-
-    value.secret_string().unwrap().to_string()
+        .expect("SST_SSM_PREFIX could not be retrieved")
+        .secret_string()
+        .expect("DATABASE_URL is not set from SSM")
+        .to_string()
 }
