@@ -12,7 +12,7 @@ pub trait Seekable {
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Seek<T> {
-    pub data: Box<Vec<T>>,
+    pub data: Vec<T>,
     pub size: i16,
     #[serde(serialize_with = "serialize_option_offset_date_time")]
     pub created_at: Option<OffsetDateTime>,
@@ -20,21 +20,18 @@ pub struct Seek<T> {
 }
 
 impl<T: Seekable> Seek<T> {
-    pub fn new(data: Vec<T>, seek_request: &SeekRequest) -> Seek<T> {
-        let mut boxed = Box::new(data);
-        let (created_at, id) = if boxed.len() > seek_request.size as usize {
-            boxed.pop();
-
-            match boxed.last() {
-                Some(last) => (Some(last.created_at()), Some(last.id())),
-                None => (None, None),
-            }
+    pub fn new(mut data: Vec<T>, seek_request: &SeekRequest) -> Seek<T> {
+        let (created_at, id) = if data.len() > seek_request.size as usize {
+            data.pop();
+            data.last()
+                .map(|last| (Some(last.created_at()), Some(last.id())))
+                .unwrap_or((None, None))
         } else {
             (None, None)
         };
 
         Seek {
-            data: boxed,
+            data,
             size: seek_request.size,
             created_at,
             id,

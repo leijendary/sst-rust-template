@@ -22,13 +22,10 @@ pub fn error_response(result: ErrorResult) -> Result<Response<Body>, Error> {
 }
 
 fn to_json<T: Serialize>(value: &T, target: &str) -> Result<String, ErrorResult> {
-    match serde_json::to_string(value) {
-        Ok(json) => Ok(json),
-        Err(error) => {
-            error!(target, "Error when parsing the struct. {:?}", error);
-            Err(internal_server())
-        }
-    }
+    serde_json::to_string(value).map_err(|error| {
+        error!(target, "Error when parsing the struct. {:?}", error);
+        internal_server()
+    })
 }
 
 fn build_response(status: u16, json: String) -> Result<Response<Body>, Error> {
