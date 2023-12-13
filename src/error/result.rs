@@ -1,4 +1,4 @@
-use std::{borrow::Cow, collections::HashMap};
+use std::collections::HashMap;
 
 use lambda_http::http::header::AUTHORIZATION;
 use serde::Serialize;
@@ -14,26 +14,26 @@ pub struct ErrorResult {
 #[skip_serializing_none]
 #[derive(Serialize)]
 pub struct ErrorDetail {
-    pub id: Option<Cow<'static, str>>,
-    pub code: Cow<'static, str>,
+    pub id: Option<Value>,
+    pub code: String,
     pub source: ErrorSource,
 }
 
 #[skip_serializing_none]
 #[derive(Serialize)]
 pub struct ErrorSource {
-    pub pointer: Option<Cow<'static, str>>,
-    pub parameter: Option<Cow<'static, str>>,
-    pub header: Option<Cow<'static, str>>,
-    pub meta: Option<HashMap<Cow<'static, str>, Value>>,
+    pub pointer: Option<String>,
+    pub parameter: Option<String>,
+    pub header: Option<String>,
+    pub meta: Option<HashMap<String, Value>>,
 }
 
 pub fn internal_server() -> ErrorResult {
     let error = ErrorDetail {
         id: None,
-        code: Cow::from("server_internal"),
+        code: "server_internal".to_owned(),
         source: ErrorSource {
-            pointer: Some(Cow::from("/server")),
+            pointer: Some("/server".to_owned()),
             header: None,
             parameter: None,
             meta: None,
@@ -49,10 +49,10 @@ pub fn internal_server() -> ErrorResult {
 pub fn unauthorized() -> ErrorResult {
     let error = ErrorDetail {
         id: None,
-        code: Cow::from("unauthorized"),
+        code: "unauthorized".to_owned(),
         source: ErrorSource {
             pointer: None,
-            header: Some(Cow::from(AUTHORIZATION.as_str())),
+            header: Some(AUTHORIZATION.to_string()),
             parameter: None,
             meta: None,
         },
@@ -67,9 +67,9 @@ pub fn unauthorized() -> ErrorResult {
 pub fn required_body() -> ErrorResult {
     let error = ErrorDetail {
         id: None,
-        code: Cow::from("required"),
+        code: "required".to_owned(),
         source: ErrorSource {
-            pointer: Some(Cow::from("/body")),
+            pointer: Some("/body".to_owned()),
             header: None,
             parameter: None,
             meta: None,
@@ -82,14 +82,14 @@ pub fn required_body() -> ErrorResult {
     }
 }
 
-pub fn required_parameter(name: &'static str) -> ErrorResult {
+pub fn required_parameter(name: &str) -> ErrorResult {
     let error = ErrorDetail {
         id: None,
-        code: Cow::from("required"),
+        code: "required".to_owned(),
         source: ErrorSource {
             pointer: None,
             header: None,
-            parameter: Some(Cow::from(name)),
+            parameter: Some(name.to_owned()),
             meta: None,
         },
     };
@@ -100,10 +100,10 @@ pub fn required_parameter(name: &'static str) -> ErrorResult {
     }
 }
 
-pub fn invalid_parameter(name: Cow<'static, str>) -> ErrorResult {
+pub fn invalid_parameter(name: String) -> ErrorResult {
     let error = ErrorDetail {
         id: None,
-        code: Cow::from("invalid"),
+        code: "invalid".to_owned(),
         source: ErrorSource {
             pointer: None,
             header: None,
@@ -118,12 +118,12 @@ pub fn invalid_parameter(name: Cow<'static, str>) -> ErrorResult {
     }
 }
 
-pub fn resource_not_found(id: i64, pointer: &'static str) -> ErrorResult {
+pub fn resource_not_found(id: i64, pointer: &str) -> ErrorResult {
     let error = ErrorDetail {
-        id: Some(Cow::from(id.to_string())),
-        code: Cow::from("not_found"),
+        id: Some(Value::from(id)),
+        code: "not_found".to_owned(),
         source: ErrorSource {
-            pointer: Some(Cow::from(pointer)),
+            pointer: Some(pointer.to_owned()),
             parameter: None,
             header: None,
             meta: None,
@@ -136,13 +136,13 @@ pub fn resource_not_found(id: i64, pointer: &'static str) -> ErrorResult {
     }
 }
 
-pub fn version_conflict(id: i64, pointer: &'static str, version: i16) -> ErrorResult {
-    let meta = HashMap::from([(Cow::from("version"), Value::from(version))]);
+pub fn version_conflict(id: i64, pointer: &str, version: i16) -> ErrorResult {
+    let meta = HashMap::from([("version".to_owned(), Value::from(version))]);
     let error = ErrorDetail {
-        id: Some(Cow::from(id.to_string())),
-        code: Cow::from("version_conflict"),
+        id: Some(Value::from(id)),
+        code: "version_conflict".to_owned(),
         source: ErrorSource {
-            pointer: Some(Cow::from(pointer)),
+            pointer: Some(pointer.to_owned()),
             parameter: None,
             header: None,
             meta: Some(meta),
@@ -157,9 +157,9 @@ pub fn version_conflict(id: i64, pointer: &'static str, version: i16) -> ErrorRe
 
 pub fn not_found() -> ErrorResult {
     let error = ErrorDetail {
-        code: Cow::from("not_found"),
+        code: "not_found".to_owned(),
         source: ErrorSource {
-            pointer: Some(Cow::from("/path")),
+            pointer: Some("/path".to_owned()),
             parameter: None,
             header: None,
             meta: None,

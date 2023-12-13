@@ -93,24 +93,29 @@ fn map_list_errors(field: &str, map: &BTreeMap<usize, Box<ValidationErrors>>) ->
 }
 
 fn map_field_errors(field: &str, errors: &Vec<ValidationError>) -> Vec<ErrorDetail> {
+    let pointer = format!("/body/{field}");
+
     errors
         .into_iter()
         .map(|err| {
-            let mut params = err.params.clone();
-            params.remove("value");
-
+            let params: HashMap<String, Value> = err
+                .params
+                .clone()
+                .into_iter()
+                .filter(|(key, _)| key != "value")
+                .map(|(key, value)| (key.to_string(), value))
+                .collect();
             let meta = if !params.is_empty() {
                 Some(params)
             } else {
                 None
             };
-            let pointer = format!("/body/{field}");
 
             ErrorDetail {
                 id: None,
-                code: err.code.to_owned(),
+                code: err.code.to_string(),
                 source: ErrorSource {
-                    pointer: Some(Cow::from(pointer)),
+                    pointer: Some(pointer.clone()),
                     header: None,
                     parameter: None,
                     meta,

@@ -13,7 +13,7 @@ use sqlx::{
     postgres::PgDatabaseError,
     Error,
 };
-use std::{borrow::Cow, vec};
+use std::vec;
 use tracing::error;
 
 lazy_static! {
@@ -22,12 +22,7 @@ lazy_static! {
             .expect("UNIQUE_REGEX is not a valid pattern");
 }
 
-pub fn resource_error(
-    id: i64,
-    pointer: &'static str,
-    version: Option<i16>,
-    err: Error,
-) -> ErrorResult {
+pub fn resource_error(id: i64, pointer: &str, version: Option<i16>, err: Error) -> ErrorResult {
     if !matches!(err, Error::RowNotFound) {
         return database_error(err);
     }
@@ -65,9 +60,9 @@ fn parse_detail(err: &PgDatabaseError) -> (u16, ErrorDetail) {
     };
     let error = ErrorDetail {
         id: None,
-        code: Cow::from(code),
+        code,
         source: ErrorSource {
-            pointer: Some(Cow::from(pointer)),
+            pointer: Some(pointer),
             parameter: None,
             header: None,
             meta: None,
