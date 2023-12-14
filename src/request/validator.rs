@@ -94,33 +94,34 @@ fn map_list_errors(field: &str, map: &BTreeMap<usize, Box<ValidationErrors>>) ->
 
 fn map_field_errors(field: &str, errors: &Vec<ValidationError>) -> Vec<ErrorDetail> {
     let pointer = format!("/body/{field}");
-
     errors
         .into_iter()
-        .map(|err| {
-            let params: HashMap<String, Value> = err
-                .params
-                .clone()
-                .into_iter()
-                .filter(|(key, _)| key != "value")
-                .map(|(key, value)| (key.to_string(), value))
-                .collect();
-            let meta = if !params.is_empty() {
-                Some(params)
-            } else {
-                None
-            };
-
-            ErrorDetail {
-                id: None,
-                code: err.code.to_string(),
-                source: ErrorSource {
-                    pointer: Some(pointer.clone()),
-                    header: None,
-                    parameter: None,
-                    meta,
-                },
-            }
-        })
+        .map(|err| map_error_detail(&pointer, err))
         .collect()
+}
+
+fn map_error_detail(pointer: &str, err: &ValidationError) -> ErrorDetail {
+    let params: HashMap<String, Value> = err
+        .params
+        .clone()
+        .into_iter()
+        .filter(|(key, _)| key != "value")
+        .map(|(key, value)| (key.to_string(), value))
+        .collect();
+    let meta = if !params.is_empty() {
+        Some(params)
+    } else {
+        None
+    };
+
+    ErrorDetail {
+        id: None,
+        code: err.code.to_string(),
+        source: ErrorSource {
+            pointer: Some(pointer.to_string()),
+            header: None,
+            parameter: None,
+            meta,
+        },
+    }
 }
