@@ -93,8 +93,7 @@ fn unique_violation(err: &PgDatabaseError) -> (u16, String, String) {
     let matched = UNIQUE_REGEX
         .captures(detail)
         .and_then(|m| m.get(1))
-        .map(|m| m.as_str())
-        .and_then(|s| s.split(", ").last())
+        .and_then(|s| s.as_str().split(", ").last())
         .map(|s| s.to_case(Case::Camel));
     let field = match matched {
         Some(field) => field,
