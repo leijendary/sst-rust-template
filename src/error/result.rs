@@ -155,7 +155,7 @@ pub fn version_conflict(id: i64, pointer: &str, version: i16) -> ErrorResult {
     }
 }
 
-pub fn not_found() -> ErrorResult {
+pub fn path_not_found() -> ErrorResult {
     let error = ErrorDetail {
         code: "not_found".to_owned(),
         source: ErrorSource {
