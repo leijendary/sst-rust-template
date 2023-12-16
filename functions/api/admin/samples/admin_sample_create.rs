@@ -3,8 +3,8 @@ use lambda_runtime::service_fn;
 use sst_rust::{
     config::tracing::enable_tracing,
     database::postgres::{connect_postgres, PostgresRepository},
+    domain::sample::{model::SampleRequest, service::SampleService},
     error::result::required_body,
-    model::sample::{repository::SampleRequest, service::SampleService},
     request::{context::get_user_id, validator::validate},
     response::json::{error_response, json_response},
     storage::secret::secret_client,

@@ -1,114 +1,17 @@
-use async_trait::async_trait;
-use serde::{Deserialize, Serialize};
-use serde_trim::{option_string_trim, string_trim};
-use serde_with::skip_serializing_none;
-use sqlx::{query, query_as, FromRow, Postgres, Transaction};
-use time::OffsetDateTime;
-use validator::Validate;
-
 use crate::{
     database::postgres::PostgresRepository,
     error::{
         parser::{database_error, resource_error},
         result::{version_conflict, ErrorResult},
     },
-    model::translation::Translation,
-    request::{page::PageRequest, seek::SeekRequest, validator::validate_unique_translation},
-    response::seek::Seekable,
+    request::{page::PageRequest, seek::SeekRequest},
 };
+use async_trait::async_trait;
+use sqlx::{query, query_as, Postgres, Transaction};
+
+use super::model::{SampleDetail, SampleList, SampleRequest, SampleSeekFilter, SampleTranslation};
 
 const POINTER: &'static str = "/data/sample";
-
-pub struct SampleSeekFilter {
-    pub language: Option<String>,
-    pub query: Option<String>,
-}
-
-#[derive(FromRow, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct SampleList {
-    pub id: i64,
-    pub name: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub description: Option<String>,
-    pub amount: i32,
-    #[serde(with = "time::serde::rfc3339")]
-    pub created_at: OffsetDateTime,
-}
-
-impl Seekable for SampleList {
-    fn created_at(&self) -> OffsetDateTime {
-        self.created_at
-    }
-
-    fn id(&self) -> i64 {
-        self.id
-    }
-}
-
-#[derive(Debug, Validate, Deserialize)]
-pub struct SampleRequest {
-    #[serde(default, deserialize_with = "string_trim")]
-    #[validate(length(min = 1, max = 100))]
-    pub name: String,
-    #[serde(default, deserialize_with = "option_string_trim")]
-    pub description: Option<String>,
-    #[serde(default)]
-    #[validate(range(min = 1, max = 99999999))]
-    pub amount: i32,
-    #[serde(default)]
-    #[validate(length(min = 1, max = 100), custom = "validate_unique_translation")]
-    #[validate]
-    pub translations: Vec<SampleTranslation>,
-    #[serde(skip)]
-    pub created_by: String,
-    #[serde(skip)]
-    pub last_modified_by: String,
-}
-
-#[derive(Debug, FromRow, Validate, Serialize, Deserialize)]
-pub struct SampleTranslation {
-    #[serde(default, deserialize_with = "string_trim")]
-    #[validate(length(min = 1, max = 100))]
-    pub name: String,
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "option_string_trim"
-    )]
-    #[validate(length(max = 200))]
-    pub description: Option<String>,
-    #[serde(default, deserialize_with = "string_trim")]
-    #[validate(length(min = 2, max = 4))]
-    pub language: String,
-    #[validate(range(min = 1, max = 100))]
-    pub ordinal: i16,
-}
-
-impl Translation for SampleTranslation {
-    fn language(&self) -> String {
-        self.language.to_owned()
-    }
-
-    fn ordinal(&self) -> i16 {
-        self.ordinal.to_owned()
-    }
-}
-
-#[skip_serializing_none]
-#[derive(FromRow, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct SampleDetail {
-    pub id: i64,
-    pub name: String,
-    pub description: Option<String>,
-    pub amount: i32,
-    pub version: i16,
-    #[sqlx(skip)]
-    pub translations: Option<Vec<SampleTranslation>>,
-    #[serde(with = "time::serde::rfc3339")]
-    pub created_at: OffsetDateTime,
-}
 
 #[async_trait]
 pub trait SampleRepository {
@@ -381,24 +284,13 @@ impl SampleRepository for PostgresRepository {
             select * from unnest($1::int[], $2::text[], $3::text[], $4::text[], $5::smallint[])
             returning name, description, language, ordinal";
         let len = translations.len();
-        let mut ids: Vec<i64> = Vec::with_capacity(len);
-        let mut names: Vec<String> = Vec::with_capacity(len);
-        let mut descriptions: Vec<Option<String>> = Vec::with_capacity(len);
-        let mut languages: Vec<String> = Vec::with_capacity(len);
-        let mut ordinals: Vec<i16> = Vec::with_capacity(len);
-
-        for translation in translations {
-            ids.push(id);
-            names.push(translation.name.to_owned());
-            descriptions.push(translation.description.to_owned());
-            languages.push(translation.language.to_owned());
-            ordinals.push(translation.ordinal);
-        }
+        let ids = vec![id; len];
+        let (names, descriptions, languages, ordinals) = translations_binds(len, translations);
 
         query_as(sql)
             .bind(ids)
             .bind(names)
-            .bind(&descriptions as &[Option<String>])
+            .bind(descriptions)
             .bind(languages)
             .bind(ordinals)
             .fetch_all(&mut **tx)
@@ -413,14 +305,13 @@ impl SampleRepository for PostgresRepository {
         translations: &Vec<SampleTranslation>,
     ) -> Result<Vec<SampleTranslation>, ErrorResult> {
         let mut sql = "delete from sample_translation where id = $1 and language <> all($2)";
-        let languages = translations
-            .into_iter()
-            .map(|translation| translation.language())
-            .collect::<Vec<String>>();
+        let len = translations.len();
+        let ids = vec![id; len];
+        let (names, descriptions, languages, ordinals) = translations_binds(len, translations);
 
         query(sql)
             .bind(id)
-            .bind(languages)
+            .bind(&languages)
             .execute(&mut **tx)
             .await
             .map_err(|error| database_error(error))?;
@@ -435,29 +326,34 @@ impl SampleRepository for PostgresRepository {
                 language = excluded.language,
                 ordinal = excluded.ordinal
             returning name, description, language, ordinal";
-        let len = translations.len();
-        let mut ids: Vec<i64> = Vec::with_capacity(len);
-        let mut names: Vec<String> = Vec::with_capacity(len);
-        let mut descriptions: Vec<Option<String>> = Vec::with_capacity(len);
-        let mut languages: Vec<String> = Vec::with_capacity(len);
-        let mut ordinals: Vec<i16> = Vec::with_capacity(len);
-
-        for translation in translations {
-            ids.push(id);
-            names.push(translation.name.to_owned());
-            descriptions.push(translation.description.to_owned());
-            languages.push(translation.language.to_owned());
-            ordinals.push(translation.ordinal);
-        }
 
         query_as(sql)
             .bind(ids)
             .bind(names)
-            .bind(&descriptions as &[Option<String>])
+            .bind(descriptions)
             .bind(languages)
             .bind(ordinals)
             .fetch_all(&mut **tx)
             .await
             .map_err(|error| database_error(error))
     }
+}
+
+fn translations_binds(
+    len: usize,
+    translations: &Vec<SampleTranslation>,
+) -> (Vec<String>, Vec<Option<String>>, Vec<String>, Vec<i16>) {
+    let mut names: Vec<String> = Vec::with_capacity(len);
+    let mut descriptions: Vec<Option<String>> = Vec::with_capacity(len);
+    let mut languages: Vec<String> = Vec::with_capacity(len);
+    let mut ordinals: Vec<i16> = Vec::with_capacity(len);
+
+    for translation in translations {
+        names.push(translation.name.to_owned());
+        descriptions.push(translation.description.to_owned());
+        languages.push(translation.language.to_owned());
+        ordinals.push(translation.ordinal);
+    }
+
+    return (names, descriptions, languages, ordinals);
 }

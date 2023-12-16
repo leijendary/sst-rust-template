@@ -7,8 +7,9 @@ use crate::{
     response::{page::Page, seek::Seek},
 };
 
-use super::repository::{
-    SampleDetail, SampleList, SampleRepository, SampleRequest, SampleSeekFilter,
+use super::{
+    model::{SampleDetail, SampleList, SampleRequest, SampleSeekFilter},
+    repository::SampleRepository,
 };
 
 pub struct SampleService {

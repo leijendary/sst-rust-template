@@ -5,7 +5,7 @@ use std::{
 
 use crate::{
     error::result::{ErrorDetail, ErrorResult, ErrorSource},
-    model::translation::Translation,
+    domain::translation::Translation,
 };
 use serde_json::Value;
 use validator::{Validate, ValidationError, ValidationErrors, ValidationErrorsKind};
