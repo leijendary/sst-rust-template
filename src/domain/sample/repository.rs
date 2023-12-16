@@ -283,9 +283,7 @@ impl SampleRepository for PostgresRepository {
         let sql = "insert into sample_translation (id, name, description, language, ordinal)
             select * from unnest($1::int[], $2::text[], $3::text[], $4::text[], $5::smallint[])
             returning name, description, language, ordinal";
-        let len = translations.len();
-        let ids = vec![id; len];
-        let (names, descriptions, languages, ordinals) = translations_binds(len, translations);
+        let (ids, names, descriptions, languages, ordinals) = translations_binds(id, translations);
 
         query_as(sql)
             .bind(ids)
@@ -305,9 +303,7 @@ impl SampleRepository for PostgresRepository {
         translations: &Vec<SampleTranslation>,
     ) -> Result<Vec<SampleTranslation>, ErrorResult> {
         let mut sql = "delete from sample_translation where id = $1 and language <> all($2)";
-        let len = translations.len();
-        let ids = vec![id; len];
-        let (names, descriptions, languages, ordinals) = translations_binds(len, translations);
+        let (ids, names, descriptions, languages, ordinals) = translations_binds(id, translations);
 
         query(sql)
             .bind(id)
@@ -340,9 +336,17 @@ impl SampleRepository for PostgresRepository {
 }
 
 fn translations_binds(
-    len: usize,
+    id: i64,
     translations: &Vec<SampleTranslation>,
-) -> (Vec<String>, Vec<Option<String>>, Vec<String>, Vec<i16>) {
+) -> (
+    Vec<i64>,
+    Vec<String>,
+    Vec<Option<String>>,
+    Vec<String>,
+    Vec<i16>,
+) {
+    let len = translations.len();
+    let ids = vec![id; len];
     let mut names: Vec<String> = Vec::with_capacity(len);
     let mut descriptions: Vec<Option<String>> = Vec::with_capacity(len);
     let mut languages: Vec<String> = Vec::with_capacity(len);
@@ -355,5 +359,5 @@ fn translations_binds(
         ordinals.push(translation.ordinal);
     }
 
-    return (names, descriptions, languages, ordinals);
+    return (ids, names, descriptions, languages, ordinals);
 }
