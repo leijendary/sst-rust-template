@@ -359,5 +359,5 @@ fn translations_binds(
         ordinals.push(translation.ordinal);
     }
 
-    return (ids, names, descriptions, languages, ordinals);
+    (ids, names, descriptions, languages, ordinals)
 }
