@@ -239,10 +239,7 @@ impl SampleRepository for PostgresRepository {
         user_id: String,
     ) -> Result<(), ErrorResult> {
         let sql = "update sample
-            set
-                version = version + 1,
-                deleted_by = $3,
-                deleted_at = now()
+            set version = version + 1, deleted_by = $3, deleted_at = now()
             where id = $1 and version = $2";
         let result = query(sql)
             .bind(id)
