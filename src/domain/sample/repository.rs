@@ -19,34 +19,34 @@ pub trait SampleRepository {
     /// This is a more optimized way to do pagination compared to limit-offset pagination.
     /// The way this works is that this will use indices to get the first n results and
     /// just limits after that.
-    async fn sample_seek(
+    async fn seek_samples(
         &self,
         filter: &SampleSeekFilter,
         seek_request: &SeekRequest,
     ) -> Result<Vec<SampleList>, ErrorResult>;
 
-    async fn sample_list(
+    async fn list_samples(
         &self,
         query: &Option<String>,
         page_request: &PageRequest,
     ) -> Result<Vec<SampleList>, ErrorResult>;
 
-    async fn sample_count(&self, query: &Option<String>) -> Result<i64, ErrorResult>;
+    async fn count_samples(&self, query: &Option<String>) -> Result<i64, ErrorResult>;
 
-    async fn sample_create(
+    async fn create_sample(
         &self,
         tx: &mut Transaction<Postgres>,
         sample: &SampleRequest,
     ) -> Result<SampleDetail, ErrorResult>;
 
-    async fn sample_get(
+    async fn get_sample(
         &self,
         id: i64,
         translate: bool,
         language: &Option<String>,
     ) -> Result<SampleDetail, ErrorResult>;
 
-    async fn sample_update(
+    async fn update_sample(
         &self,
         tx: &mut Transaction<Postgres>,
         id: i64,
@@ -61,19 +61,19 @@ pub trait SampleRepository {
         user_id: String,
     ) -> Result<(), ErrorResult>;
 
-    async fn sample_translations_list(
+    async fn list_sample_translations(
         &self,
         id: i64,
     ) -> Result<Vec<SampleTranslation>, ErrorResult>;
 
-    async fn sample_translations_create(
+    async fn create_sample_translations(
         &self,
         tx: &mut Transaction<Postgres>,
         id: i64,
         translations: &Vec<SampleTranslation>,
     ) -> Result<Vec<SampleTranslation>, ErrorResult>;
 
-    async fn sample_translations_update(
+    async fn update_sample_translations(
         &self,
         tx: &mut Transaction<Postgres>,
         id: i64,
@@ -83,7 +83,7 @@ pub trait SampleRepository {
 
 #[async_trait]
 impl SampleRepository for PostgresRepository {
-    async fn sample_seek(
+    async fn seek_samples(
         &self,
         filter: &SampleSeekFilter,
         seek_request: &SeekRequest,
@@ -115,7 +115,7 @@ impl SampleRepository for PostgresRepository {
             .map_err(|error| database_error(error))
     }
 
-    async fn sample_list(
+    async fn list_samples(
         &self,
         query: &Option<String>,
         page_request: &PageRequest,
@@ -136,7 +136,7 @@ impl SampleRepository for PostgresRepository {
             .map_err(|error| database_error(error))
     }
 
-    async fn sample_count(&self, query: &Option<String>) -> Result<i64, ErrorResult> {
+    async fn count_samples(&self, query: &Option<String>) -> Result<i64, ErrorResult> {
         let sql = "select count(*)
             from sample
             where deleted_at is null and name ilike concat('%%', $1::text, '%%')";
@@ -149,7 +149,7 @@ impl SampleRepository for PostgresRepository {
             .map_err(|error| database_error(error))
     }
 
-    async fn sample_create(
+    async fn create_sample(
         &self,
         tx: &mut Transaction<Postgres>,
         sample: &SampleRequest,
@@ -169,7 +169,7 @@ impl SampleRepository for PostgresRepository {
             .map_err(|error| database_error(error))
     }
 
-    async fn sample_get(
+    async fn get_sample(
         &self,
         id: i64,
         translate: bool,
@@ -202,7 +202,7 @@ impl SampleRepository for PostgresRepository {
             .map_err(|error| resource_error(id, POINTER, None, error))
     }
 
-    async fn sample_update(
+    async fn update_sample(
         &self,
         tx: &mut Transaction<Postgres>,
         id: i64,
@@ -256,7 +256,7 @@ impl SampleRepository for PostgresRepository {
         Ok(())
     }
 
-    async fn sample_translations_list(
+    async fn list_sample_translations(
         &self,
         id: i64,
     ) -> Result<Vec<SampleTranslation>, ErrorResult> {
@@ -271,7 +271,7 @@ impl SampleRepository for PostgresRepository {
             .map_err(|error| database_error(error))
     }
 
-    async fn sample_translations_create(
+    async fn create_sample_translations(
         &self,
         tx: &mut Transaction<Postgres>,
         id: i64,
@@ -293,7 +293,7 @@ impl SampleRepository for PostgresRepository {
             .map_err(|error| database_error(error))
     }
 
-    async fn sample_translations_update(
+    async fn update_sample_translations(
         &self,
         tx: &mut Transaction<Postgres>,
         id: i64,
