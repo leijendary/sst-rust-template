@@ -2,8 +2,8 @@ use lambda_http::{run, Body, Error, Request, Response};
 use lambda_runtime::service_fn;
 use sst_rust::{
     config::tracing::enable_tracing,
-    database::postgres::{connect_postgres, PostgresRepository},
-    domain::sample::service::SampleService,
+    database::postgres::connect_postgres,
+    domain::sample::{repository::SampleRepository, service::SampleService},
     request::{header::get_language, path::path_param},
     response::json::{error_response, json_response},
     storage::secret::secret_client,
@@ -26,7 +26,7 @@ async fn main() -> Result<(), Error> {
 
     let client = secret_client().await;
     let pool = connect_postgres(&client).await;
-    let repository = PostgresRepository::new(pool);
+    let repository = SampleRepository { pool };
     let service = &SampleService { repository };
 
     run(service_fn(move |event: Request| async move {

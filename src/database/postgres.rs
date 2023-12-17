@@ -7,14 +7,17 @@ use crate::error::{parser::database_error, result::ErrorResult};
 
 const DATABASE_URL: &str = "DATABASE_URL";
 
-pub struct PostgresRepository {
-    pub pool: PgPool,
-}
+pub async fn connect_postgres(client: &Client) -> PgPool {
+    let url = match env::var_os(DATABASE_URL) {
+        Some(url) => url.into_string().expect("DATABASE_URL is not set"),
+        None => url_from_secret(client).await,
+    };
 
-impl PostgresRepository {
-    pub fn new(pool: PgPool) -> Self {
-        Self { pool }
-    }
+    PgPoolOptions::new()
+        .max_connections(2)
+        .connect(&url)
+        .await
+        .expect("Unable to connect to PostgreSQL")
 }
 
 pub async fn begin(pool: &PgPool) -> Result<Transaction<Postgres>, ErrorResult> {
@@ -27,19 +30,6 @@ pub async fn commit(tx: Transaction<'_, Postgres>) -> Result<(), ErrorResult> {
 
 pub async fn rollback(tx: Transaction<'_, Postgres>) -> Result<(), ErrorResult> {
     tx.rollback().await.map_err(|error| database_error(error))
-}
-
-pub async fn connect_postgres(client: &Client) -> PgPool {
-    let url = match env::var_os(DATABASE_URL) {
-        Some(url) => url.into_string().expect("DATABASE_URL is not set"),
-        None => url_from_secret(client).await,
-    };
-
-    PgPoolOptions::new()
-        .max_connections(2)
-        .connect(&url)
-        .await
-        .expect("Unable to connect to PostgreSQL")
 }
 
 async fn url_from_secret(client: &Client) -> String {

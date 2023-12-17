@@ -1,7 +1,7 @@
 use tokio::try_join;
 
 use crate::{
-    database::postgres::{begin, commit, PostgresRepository},
+    database::postgres::{begin, commit},
     error::result::ErrorResult,
     request::{page::PageRequest, seek::SeekRequest},
     response::{page::Page, seek::Seek},
@@ -13,7 +13,7 @@ use super::{
 };
 
 pub struct SampleService {
-    pub repository: PostgresRepository,
+    pub repository: SampleRepository,
 }
 
 impl SampleService {
@@ -22,7 +22,7 @@ impl SampleService {
         filter: &SampleSeekFilter,
         seek_request: &SeekRequest,
     ) -> Result<Seek<SampleList>, ErrorResult> {
-        let list = self.repository.seek_samples(filter, seek_request).await?;
+        let list = self.repository.seek(filter, seek_request).await?;
 
         Ok(Seek::new(list, seek_request))
     }
@@ -33,8 +33,8 @@ impl SampleService {
         page_request: &PageRequest,
     ) -> Result<Page<SampleList>, ErrorResult> {
         let (list, count) = try_join!(
-            self.repository.list_samples(query, page_request),
-            self.repository.count_samples(query)
+            self.repository.page(query, page_request),
+            self.repository.count(query)
         )?;
 
         Ok(Page::new(list, count, &page_request))
@@ -42,10 +42,10 @@ impl SampleService {
 
     pub async fn create(&self, request: &SampleRequest) -> Result<SampleDetail, ErrorResult> {
         let mut tx = begin(&self.repository.pool).await?;
-        let mut sample = self.repository.create_sample(&mut tx, request).await?;
+        let mut sample = self.repository.create(&mut tx, request).await?;
         sample.translations = self
             .repository
-            .create_sample_translations(&mut tx, sample.id, &request.translations)
+            .create_translations(&mut tx, sample.id, &request.translations)
             .await
             .map(|translations| Some(translations))?;
 
@@ -62,13 +62,13 @@ impl SampleService {
         translate: bool,
         language: &Option<String>,
     ) -> Result<SampleDetail, ErrorResult> {
-        let sample_fut = self.repository.get_sample(id, translate, language);
+        let sample_fut = self.repository.get(id, translate, language);
 
         if translate {
             return sample_fut.await;
         }
 
-        let translations_fut = self.repository.list_sample_translations(id);
+        let translations_fut = self.repository.list_translations(id);
         let (mut sample, translations) = try_join!(sample_fut, translations_fut)?;
         sample.translations = Some(translations);
 
@@ -84,11 +84,11 @@ impl SampleService {
         let mut tx = begin(&self.repository.pool).await?;
         let mut sample = self
             .repository
-            .update_sample(&mut tx, id, request, version)
+            .update(&mut tx, id, request, version)
             .await?;
         sample.translations = self
             .repository
-            .update_sample_translations(&mut tx, id, &request.translations)
+            .update_translations(&mut tx, id, &request.translations)
             .await
             .map(|translations| Some(translations))?;
 
@@ -98,6 +98,6 @@ impl SampleService {
     }
 
     pub async fn delete(&self, id: i64, version: i16, user_id: String) -> Result<(), ErrorResult> {
-        self.repository.sample_delete(id, version, user_id).await
+        self.repository.delete(id, version, user_id).await
     }
 }
