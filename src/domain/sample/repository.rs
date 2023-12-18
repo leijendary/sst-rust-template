@@ -9,7 +9,7 @@ use sqlx::{query, query_as, PgPool, Postgres, Transaction};
 
 use super::model::{SampleDetail, SampleList, SampleRequest, SampleSeekFilter, SampleTranslation};
 
-const POINTER: &'static str = "/data/sample";
+const POINTER: &str = "/data/sample";
 
 pub struct SampleRepository {
     pub pool: PgPool,
@@ -204,7 +204,7 @@ impl SampleRepository {
         &self,
         tx: &mut Transaction<'_, Postgres>,
         id: i64,
-        translations: &Vec<SampleTranslation>,
+        translations: Vec<SampleTranslation>,
     ) -> Result<Vec<SampleTranslation>, ErrorResult> {
         const SQL: &str = "insert into
             sample_translation (id, name, description, language, ordinal)
@@ -227,7 +227,7 @@ impl SampleRepository {
         &self,
         tx: &mut Transaction<'_, Postgres>,
         id: i64,
-        translations: &Vec<SampleTranslation>,
+        translations: Vec<SampleTranslation>,
     ) -> Result<Vec<SampleTranslation>, ErrorResult> {
         const DELETE_SQL: &str = "delete from sample_translation
             where id = $1 and language <> all($2)";
@@ -266,7 +266,7 @@ impl SampleRepository {
 
 fn translations_binds(
     id: i64,
-    translations: &Vec<SampleTranslation>,
+    translations: Vec<SampleTranslation>,
 ) -> (
     Vec<i64>,
     Vec<String>,
@@ -282,9 +282,9 @@ fn translations_binds(
     let mut ordinals: Vec<i16> = Vec::with_capacity(len);
 
     for translation in translations {
-        names.push(translation.name.to_owned());
-        descriptions.push(translation.description.to_owned());
-        languages.push(translation.language.to_owned());
+        names.push(translation.name);
+        descriptions.push(translation.description);
+        languages.push(translation.language);
         ordinals.push(translation.ordinal);
     }
 

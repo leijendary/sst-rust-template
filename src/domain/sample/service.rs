@@ -40,12 +40,12 @@ impl SampleService {
         Ok(Page::new(list, count, &page_request))
     }
 
-    pub async fn create(&self, request: &SampleRequest) -> Result<SampleDetail, ErrorResult> {
+    pub async fn create(&self, request: SampleRequest) -> Result<SampleDetail, ErrorResult> {
         let mut tx = begin(&self.repository.pool).await?;
-        let mut sample = self.repository.create(&mut tx, request).await?;
+        let mut sample = self.repository.create(&mut tx, &request).await?;
         sample.translations = self
             .repository
-            .create_translations(&mut tx, sample.id, &request.translations)
+            .create_translations(&mut tx, sample.id, request.translations)
             .await
             .map(|translations| Some(translations))?;
 
@@ -78,17 +78,17 @@ impl SampleService {
     pub async fn update(
         &self,
         id: i64,
-        request: &SampleRequest,
+        request: SampleRequest,
         version: i16,
     ) -> Result<SampleDetail, ErrorResult> {
         let mut tx = begin(&self.repository.pool).await?;
         let mut sample = self
             .repository
-            .update(&mut tx, id, request, version)
+            .update(&mut tx, id, &request, version)
             .await?;
         sample.translations = self
             .repository
-            .update_translations(&mut tx, id, &request.translations)
+            .update_translations(&mut tx, id, request.translations)
             .await
             .map(|translations| Some(translations))?;
 

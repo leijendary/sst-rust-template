@@ -28,7 +28,7 @@ async fn handler(service: &SampleService, event: Request) -> Result<Response<Bod
     sample.created_by = user_id.to_owned();
     sample.last_modified_by = user_id.to_owned();
 
-    let result = service.create(&sample).await;
+    let result = service.create(sample).await;
 
     json_response(201, result)
 }

@@ -32,7 +32,7 @@ async fn handler(service: &SampleService, event: Request) -> Result<Response<Bod
 
     sample.last_modified_by = user_id;
 
-    let result = service.update(id, &sample, version).await;
+    let result = service.update(id, sample, version).await;
 
     json_response(201, result)
 }
