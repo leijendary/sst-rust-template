@@ -25,7 +25,7 @@ impl SampleRepository {
         filter: &SampleSeekFilter,
         seek_request: &SeekRequest,
     ) -> Result<Vec<SampleList>, ErrorResult> {
-        let sql = "select s.id, t.name, t.description, amount, created_at
+        const SQL: &str = "select s.id, t.name, t.description, amount, created_at
             from sample s
             left join lateral (
                 select name, description
@@ -41,7 +41,7 @@ impl SampleRepository {
             order by created_at desc, id desc
 	        limit $3";
 
-        query_as(sql)
+        query_as(SQL)
             .bind(&filter.language)
             .bind(&filter.query)
             .bind(seek_request.limit())
@@ -57,14 +57,14 @@ impl SampleRepository {
         query: &Option<String>,
         page_request: &PageRequest,
     ) -> Result<Vec<SampleList>, ErrorResult> {
-        let sql = "select id, name, description, amount, created_at
+        const SQL: &str = "select id, name, description, amount, created_at
             from sample
             where deleted_at is null and name ilike concat('%%', $1::text, '%%')
             order by created_at desc
             limit $2
             offset $3";
 
-        query_as(sql)
+        query_as(SQL)
             .bind(query)
             .bind(page_request.limit())
             .bind(page_request.offset())
@@ -74,11 +74,11 @@ impl SampleRepository {
     }
 
     pub async fn count(&self, query: &Option<String>) -> Result<i64, ErrorResult> {
-        let sql = "select count(*)
+        const SQL: &str = "select count(*)
             from sample
             where deleted_at is null and name ilike concat('%%', $1::text, '%%')";
 
-        query_as(sql)
+        query_as(SQL)
             .bind(query)
             .fetch_one(&self.pool)
             .await
@@ -91,11 +91,12 @@ impl SampleRepository {
         tx: &mut Transaction<'_, Postgres>,
         sample: &SampleRequest,
     ) -> Result<SampleDetail, ErrorResult> {
-        let sql = "insert into sample (name, description, amount, created_by, last_modified_by)
+        const SQL: &str = "insert into
+            sample (name, description, amount, created_by, last_modified_by)
             values ($1, $2, $3, $4, $5)
             returning id, name, description, amount, version, created_at";
 
-        query_as(sql)
+        query_as(SQL)
             .bind(&sample.name)
             .bind(&sample.description)
             .bind(&sample.amount)
@@ -112,8 +113,7 @@ impl SampleRepository {
         translate: bool,
         language: &Option<String>,
     ) -> Result<SampleDetail, ErrorResult> {
-        let sql = "
-            select
+        const SQL: &str = "select
                 s.id,
                 coalesce(t.name, s.name) name,
                 coalesce(t.description, s.description) description,
@@ -130,7 +130,7 @@ impl SampleRepository {
             ) t on $2
             where id = $1 and deleted_at is null";
 
-        query_as(sql)
+        query_as(SQL)
             .bind(id)
             .bind(translate)
             .bind(language)
@@ -146,7 +146,7 @@ impl SampleRepository {
         sample: &SampleRequest,
         version: i16,
     ) -> Result<SampleDetail, ErrorResult> {
-        let sql = "update sample
+        const SQL: &str = "update sample
             set
                 name = $3,
                 description = $4,
@@ -157,7 +157,7 @@ impl SampleRepository {
             where id = $1 and version = $2
             returning id, name, description, amount, version, created_at, created_by, last_modified_at, last_modified_by";
 
-        query_as(sql)
+        query_as(SQL)
             .bind(id)
             .bind(version)
             .bind(&sample.name)
@@ -170,10 +170,10 @@ impl SampleRepository {
     }
 
     pub async fn delete(&self, id: i64, version: i16, user_id: String) -> Result<(), ErrorResult> {
-        let sql = "update sample
+        const SQL: &str = "update sample
             set version = version + 1, deleted_by = $3, deleted_at = now()
             where id = $1 and version = $2";
-        let result = query(sql)
+        let result = query(SQL)
             .bind(id)
             .bind(version)
             .bind(user_id)
@@ -189,11 +189,11 @@ impl SampleRepository {
     }
 
     pub async fn list_translations(&self, id: i64) -> Result<Vec<SampleTranslation>, ErrorResult> {
-        let sql = "select name, description, language, ordinal
+        const SQL: &str = "select name, description, language, ordinal
             from sample_translation
             where id = $1";
 
-        query_as(sql)
+        query_as(SQL)
             .bind(id)
             .fetch_all(&self.pool)
             .await
@@ -206,12 +206,13 @@ impl SampleRepository {
         id: i64,
         translations: &Vec<SampleTranslation>,
     ) -> Result<Vec<SampleTranslation>, ErrorResult> {
-        let sql = "insert into sample_translation (id, name, description, language, ordinal)
+        const SQL: &str = "insert into
+            sample_translation (id, name, description, language, ordinal)
             select * from unnest($1::int[], $2::text[], $3::text[], $4::text[], $5::smallint[])
             returning name, description, language, ordinal";
         let (ids, names, descriptions, languages, ordinals) = translations_binds(id, translations);
 
-        query_as(sql)
+        query_as(SQL)
             .bind(ids)
             .bind(names)
             .bind(descriptions)
@@ -228,17 +229,19 @@ impl SampleRepository {
         id: i64,
         translations: &Vec<SampleTranslation>,
     ) -> Result<Vec<SampleTranslation>, ErrorResult> {
-        let mut sql = "delete from sample_translation where id = $1 and language <> all($2)";
+        const DELETE_SQL: &str = "delete from sample_translation
+            where id = $1 and language <> all($2)";
         let (ids, names, descriptions, languages, ordinals) = translations_binds(id, translations);
 
-        query(sql)
+        query(DELETE_SQL)
             .bind(id)
             .bind(&languages)
             .execute(&mut **tx)
             .await
             .map_err(|error| database_error(error))?;
 
-        sql = "insert into sample_translation (id, name, description, language, ordinal)
+        const INSERT_SQL: &str = "insert into
+            sample_translation (id, name, description, language, ordinal)
             select * from unnest($1::int[], $2::text[], $3::text[], $4::text[], $5::smallint[])
             on conflict (id, language)
             do update
@@ -249,7 +252,7 @@ impl SampleRepository {
                 ordinal = excluded.ordinal
             returning name, description, language, ordinal";
 
-        query_as(sql)
+        query_as(INSERT_SQL)
             .bind(ids)
             .bind(names)
             .bind(descriptions)
