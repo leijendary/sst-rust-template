@@ -41,7 +41,7 @@ impl SampleRepository {
             order by created_at desc, id desc
 	        limit $3";
 
-        query_as(SQL)
+        query_as::<_, SampleList>(SQL)
             .bind(&filter.language)
             .bind(&filter.query)
             .bind(seek_request.limit())
@@ -64,7 +64,7 @@ impl SampleRepository {
             limit $2
             offset $3";
 
-        query_as(SQL)
+        query_as::<_, SampleList>(SQL)
             .bind(query)
             .bind(page_request.limit())
             .bind(page_request.offset())
@@ -96,7 +96,7 @@ impl SampleRepository {
             values ($1, $2, $3, $4, $5)
             returning id, name, description, amount, version, created_at";
 
-        query_as(SQL)
+        query_as::<_, SampleDetail>(SQL)
             .bind(&sample.name)
             .bind(&sample.description)
             .bind(&sample.amount)
@@ -130,7 +130,7 @@ impl SampleRepository {
             ) t on $2
             where id = $1 and deleted_at is null";
 
-        query_as(SQL)
+        query_as::<_, SampleDetail>(SQL)
             .bind(id)
             .bind(translate)
             .bind(language)
@@ -157,7 +157,7 @@ impl SampleRepository {
             where id = $1 and version = $2
             returning id, name, description, amount, version, created_at, created_by, last_modified_at, last_modified_by";
 
-        query_as(SQL)
+        query_as::<_, SampleDetail>(SQL)
             .bind(id)
             .bind(version)
             .bind(&sample.name)
@@ -193,7 +193,7 @@ impl SampleRepository {
             from sample_translation
             where id = $1";
 
-        query_as(SQL)
+        query_as::<_, SampleTranslation>(SQL)
             .bind(id)
             .fetch_all(&self.pool)
             .await
@@ -212,7 +212,7 @@ impl SampleRepository {
             returning name, description, language, ordinal";
         let (ids, names, descriptions, languages, ordinals) = translations_binds(id, translations);
 
-        query_as(SQL)
+        query_as::<_, SampleTranslation>(SQL)
             .bind(ids)
             .bind(names)
             .bind(descriptions)
@@ -252,7 +252,7 @@ impl SampleRepository {
                 ordinal = excluded.ordinal
             returning name, description, language, ordinal";
 
-        query_as(INSERT_SQL)
+        query_as::<_, SampleTranslation>(INSERT_SQL)
             .bind(ids)
             .bind(names)
             .bind(descriptions)
