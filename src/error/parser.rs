@@ -56,7 +56,8 @@ fn parse_detail(err: &PgDatabaseError) -> (u16, ErrorDetail) {
         ForeignKeyViolation => foreign_key_violation(err),
         NotNullViolation => not_null_violation(err),
         CheckViolation => check_violation(err),
-        Other | _ => other_violation(err),
+        Other => other_violation(err),
+        _ => other_violation(err),
     };
     let error = ErrorDetail {
         id: None,

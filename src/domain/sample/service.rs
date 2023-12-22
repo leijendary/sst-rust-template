@@ -37,7 +37,7 @@ impl SampleService {
             self.repository.count(query)
         )?;
 
-        Ok(Page::new(list, count, &page_request))
+        Ok(Page::new(list, count, page_request))
     }
 
     pub async fn create(&self, request: SampleRequest) -> Result<SampleDetail, ErrorResult> {
@@ -47,7 +47,7 @@ impl SampleService {
             .repository
             .create_translations(&mut tx, sample.id, request.translations)
             .await
-            .map(|translations| Some(translations))?;
+            .map(Some)?;
 
         commit(tx).await?;
 
@@ -90,7 +90,7 @@ impl SampleService {
             .repository
             .update_translations(&mut tx, id, request.translations)
             .await
-            .map(|translations| Some(translations))?;
+            .map(Some)?;
 
         commit(tx).await?;
 

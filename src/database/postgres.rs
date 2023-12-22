@@ -21,15 +21,15 @@ pub async fn connect_postgres(client: &Client) -> PgPool {
 }
 
 pub async fn begin(pool: &PgPool) -> Result<Transaction<Postgres>, ErrorResult> {
-    pool.begin().await.map_err(|error| database_error(error))
+    pool.begin().await.map_err(database_error)
 }
 
 pub async fn commit(tx: Transaction<'_, Postgres>) -> Result<(), ErrorResult> {
-    tx.commit().await.map_err(|error| database_error(error))
+    tx.commit().await.map_err(database_error)
 }
 
 pub async fn rollback(tx: Transaction<'_, Postgres>) -> Result<(), ErrorResult> {
-    tx.rollback().await.map_err(|error| database_error(error))
+    tx.rollback().await.map_err(database_error)
 }
 
 async fn url_from_secret(client: &Client) -> String {

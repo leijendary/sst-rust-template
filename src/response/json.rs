@@ -17,7 +17,7 @@ pub fn json_response<T: Serialize>(
 pub fn error_response(result: ErrorResult) -> Result<Response<Body>, Error> {
     match to_json(&result, "error_response") {
         Ok(json) => build_response(result.status, json),
-        Err(error) => return error_response(error),
+        Err(error) => error_response(error),
     }
 }
 
@@ -33,5 +33,5 @@ fn build_response(status: u16, json: String) -> Result<Response<Body>, Error> {
         .header(CONTENT_TYPE, "application/json")
         .status(status)
         .body(json.into())
-        .map(|res| Ok(res))?
+        .map(Ok)?
 }

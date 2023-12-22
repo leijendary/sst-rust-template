@@ -4,8 +4,8 @@ use std::{
 };
 
 use crate::{
-    error::result::{ErrorDetail, ErrorResult, ErrorSource},
     domain::translation::Translation,
+    error::result::{ErrorDetail, ErrorResult, ErrorSource},
 };
 use serde_json::Value;
 use validator::{Validate, ValidationError, ValidationErrors, ValidationErrorsKind};
@@ -22,7 +22,7 @@ where
     Ok(value)
 }
 
-pub fn validate_unique_translation<T>(value: &Vec<T>) -> Result<(), ValidationError>
+pub fn validate_unique_translation<T>(value: &[T]) -> Result<(), ValidationError>
 where
     T: Translation,
 {
@@ -38,21 +38,20 @@ where
             None
         };
 
-        match key {
-            Some(key) => {
-                let error = ValidationError {
-                    code: Cow::from("duplicate"),
-                    message: None,
-                    params: HashMap::from([
-                        (Cow::from("index"), Value::from(i)),
-                        (Cow::from("key"), Value::from(key)),
-                    ]),
-                };
-
-                return Err(error);
-            }
-            None => (),
+        if key.is_none() {
+            continue;
         }
+
+        let error = ValidationError {
+            code: Cow::from("duplicate"),
+            message: None,
+            params: HashMap::from([
+                (Cow::from("index"), Value::from(i)),
+                (Cow::from("key"), Value::from(key)),
+            ]),
+        };
+
+        return Err(error);
     }
 
     Ok(())
@@ -61,7 +60,7 @@ where
 fn map_validation_error(errors: &ValidationErrors) -> Vec<ErrorDetail> {
     errors
         .errors()
-        .into_iter()
+        .iter()
         .flat_map(|(field, error)| match error {
             ValidationErrorsKind::Struct(errors) => map_struct_errors(errors),
             ValidationErrorsKind::List(errors) => map_list_errors(field, errors),
@@ -70,7 +69,7 @@ fn map_validation_error(errors: &ValidationErrors) -> Vec<ErrorDetail> {
         .collect()
 }
 
-fn map_struct_errors(errors: &Box<ValidationErrors>) -> Vec<ErrorDetail> {
+fn map_struct_errors(errors: &ValidationErrors) -> Vec<ErrorDetail> {
     errors
         .field_errors()
         .into_iter()
@@ -79,7 +78,7 @@ fn map_struct_errors(errors: &Box<ValidationErrors>) -> Vec<ErrorDetail> {
 }
 
 fn map_list_errors(field: &str, map: &BTreeMap<usize, Box<ValidationErrors>>) -> Vec<ErrorDetail> {
-    map.into_iter()
+    map.iter()
         .flat_map(|(index, errors)| {
             errors
                 .field_errors()
@@ -92,10 +91,10 @@ fn map_list_errors(field: &str, map: &BTreeMap<usize, Box<ValidationErrors>>) ->
         .collect()
 }
 
-fn map_field_errors(field: &str, errors: &Vec<ValidationError>) -> Vec<ErrorDetail> {
+fn map_field_errors(field: &str, errors: &[ValidationError]) -> Vec<ErrorDetail> {
     let pointer = format!("/body/{field}");
     errors
-        .into_iter()
+        .iter()
         .map(|err| map_error_detail(&pointer, err))
         .collect()
 }

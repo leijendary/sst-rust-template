@@ -12,7 +12,7 @@ where
         Some(date_time) => date_time
             .format(&Rfc3339)
             .map(|fmt| serializer.serialize_str(&fmt))
-            .map_err(|err| Error::custom(err))?,
+            .map_err(Error::custom)?,
         None => serializer.serialize_none(),
     }
 }

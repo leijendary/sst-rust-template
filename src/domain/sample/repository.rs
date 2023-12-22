@@ -11,6 +11,14 @@ use super::model::{SampleDetail, SampleList, SampleRequest, SampleSeekFilter, Sa
 
 const POINTER: &str = "/data/sample";
 
+struct TranslationsBindsResult(
+    Vec<i64>,
+    Vec<String>,
+    Vec<Option<String>>,
+    Vec<String>,
+    Vec<i16>,
+);
+
 pub struct SampleRepository {
     pub pool: PgPool,
 }
@@ -49,7 +57,7 @@ impl SampleRepository {
             .bind(seek_request.id)
             .fetch_all(&self.pool)
             .await
-            .map_err(|error| database_error(error))
+            .map_err(database_error)
     }
 
     pub async fn page(
@@ -70,7 +78,7 @@ impl SampleRepository {
             .bind(page_request.offset())
             .fetch_all(&self.pool)
             .await
-            .map_err(|error| database_error(error))
+            .map_err(database_error)
     }
 
     pub async fn count(&self, query: &Option<String>) -> Result<i64, ErrorResult> {
@@ -83,7 +91,7 @@ impl SampleRepository {
             .fetch_one(&self.pool)
             .await
             .map(|result: (i64,)| result.0)
-            .map_err(|error| database_error(error))
+            .map_err(database_error)
     }
 
     pub async fn create(
@@ -99,12 +107,12 @@ impl SampleRepository {
         query_as::<_, SampleDetail>(SQL)
             .bind(&sample.name)
             .bind(&sample.description)
-            .bind(&sample.amount)
+            .bind(sample.amount)
             .bind(&sample.created_by)
             .bind(&sample.last_modified_by)
             .fetch_one(&mut **tx)
             .await
-            .map_err(|error| database_error(error))
+            .map_err(database_error)
     }
 
     pub async fn get(
@@ -162,7 +170,7 @@ impl SampleRepository {
             .bind(version)
             .bind(&sample.name)
             .bind(&sample.description)
-            .bind(&sample.amount)
+            .bind(sample.amount)
             .bind(&sample.last_modified_by)
             .fetch_one(&mut **tx)
             .await
@@ -197,7 +205,7 @@ impl SampleRepository {
             .bind(id)
             .fetch_all(&self.pool)
             .await
-            .map_err(|error| database_error(error))
+            .map_err(database_error)
     }
 
     pub async fn create_translations(
@@ -210,7 +218,8 @@ impl SampleRepository {
             sample_translation (id, name, description, language, ordinal)
             select * from unnest($1::int[], $2::text[], $3::text[], $4::text[], $5::smallint[])
             returning name, description, language, ordinal";
-        let (ids, names, descriptions, languages, ordinals) = translations_binds(id, translations);
+        let TranslationsBindsResult(ids, names, descriptions, languages, ordinals) =
+            translations_binds(id, translations);
 
         query_as::<_, SampleTranslation>(SQL)
             .bind(ids)
@@ -220,7 +229,7 @@ impl SampleRepository {
             .bind(ordinals)
             .fetch_all(&mut **tx)
             .await
-            .map_err(|error| database_error(error))
+            .map_err(database_error)
     }
 
     pub async fn update_translations(
@@ -231,14 +240,15 @@ impl SampleRepository {
     ) -> Result<Vec<SampleTranslation>, ErrorResult> {
         const DELETE_SQL: &str = "delete from sample_translation
             where id = $1 and language <> all($2)";
-        let (ids, names, descriptions, languages, ordinals) = translations_binds(id, translations);
+        let TranslationsBindsResult(ids, names, descriptions, languages, ordinals) =
+            translations_binds(id, translations);
 
         query(DELETE_SQL)
             .bind(id)
             .bind(&languages)
             .execute(&mut **tx)
             .await
-            .map_err(|error| database_error(error))?;
+            .map_err(database_error)?;
 
         const INSERT_SQL: &str = "insert into
             sample_translation (id, name, description, language, ordinal)
@@ -260,20 +270,11 @@ impl SampleRepository {
             .bind(ordinals)
             .fetch_all(&mut **tx)
             .await
-            .map_err(|error| database_error(error))
+            .map_err(database_error)
     }
 }
 
-fn translations_binds(
-    id: i64,
-    translations: Vec<SampleTranslation>,
-) -> (
-    Vec<i64>,
-    Vec<String>,
-    Vec<Option<String>>,
-    Vec<String>,
-    Vec<i16>,
-) {
+fn translations_binds(id: i64, translations: Vec<SampleTranslation>) -> TranslationsBindsResult {
     let len = translations.len();
     let ids = vec![id; len];
     let mut names: Vec<String> = Vec::with_capacity(len);
@@ -288,5 +289,5 @@ fn translations_binds(
         ordinals.push(translation.ordinal);
     }
 
-    (ids, names, descriptions, languages, ordinals)
+    TranslationsBindsResult(ids, names, descriptions, languages, ordinals)
 }
