@@ -7,14 +7,14 @@ use crate::error::{parser::database_error, result::ErrorResult};
 
 const DATABASE_URL: &str = "DATABASE_URL";
 
-pub async fn connect_postgres(client: &Client) -> PgPool {
+pub async fn connect_postgres(client: &Client, max: u32) -> PgPool {
     let url = match env::var_os(DATABASE_URL) {
         Some(url) => url.into_string().expect("DATABASE_URL is not set"),
         None => url_from_secret(client).await,
     };
 
     PgPoolOptions::new()
-        .max_connections(2)
+        .max_connections(max)
         .connect(&url)
         .await
         .expect("Unable to connect to PostgreSQL")

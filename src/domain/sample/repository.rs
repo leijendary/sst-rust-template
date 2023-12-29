@@ -11,13 +11,13 @@ use super::model::{SampleDetail, SampleList, SampleRequest, SampleSeekFilter, Sa
 
 const POINTER: &str = "/data/sample";
 
-struct TranslationsBindsResult(
-    Vec<i64>,
-    Vec<String>,
-    Vec<Option<String>>,
-    Vec<String>,
-    Vec<i16>,
-);
+struct TranslationsBindsResult {
+    ids: Vec<i64>,
+    names: Vec<String>,
+    descriptions: Vec<Option<String>>,
+    languages: Vec<String>,
+    ordinals: Vec<i16>,
+}
 
 pub struct SampleRepository {
     pub pool: PgPool,
@@ -218,15 +218,14 @@ impl SampleRepository {
             sample_translation (id, name, description, language, ordinal)
             select * from unnest($1::int[], $2::text[], $3::text[], $4::text[], $5::smallint[])
             returning name, description, language, ordinal";
-        let TranslationsBindsResult(ids, names, descriptions, languages, ordinals) =
-            translations_binds(id, translations);
+        let binds = translations_binds(id, translations);
 
         query_as::<_, SampleTranslation>(SQL)
-            .bind(ids)
-            .bind(names)
-            .bind(descriptions)
-            .bind(languages)
-            .bind(ordinals)
+            .bind(binds.ids)
+            .bind(binds.names)
+            .bind(binds.descriptions)
+            .bind(binds.languages)
+            .bind(binds.ordinals)
             .fetch_all(&mut **tx)
             .await
             .map_err(database_error)
@@ -240,12 +239,11 @@ impl SampleRepository {
     ) -> Result<Vec<SampleTranslation>, ErrorResult> {
         const DELETE_SQL: &str = "delete from sample_translation
             where id = $1 and language <> all($2)";
-        let TranslationsBindsResult(ids, names, descriptions, languages, ordinals) =
-            translations_binds(id, translations);
+        let binds = translations_binds(id, translations);
 
         query(DELETE_SQL)
             .bind(id)
-            .bind(&languages)
+            .bind(&binds.languages)
             .execute(&mut **tx)
             .await
             .map_err(database_error)?;
@@ -263,11 +261,11 @@ impl SampleRepository {
             returning name, description, language, ordinal";
 
         query_as::<_, SampleTranslation>(INSERT_SQL)
-            .bind(ids)
-            .bind(names)
-            .bind(descriptions)
-            .bind(languages)
-            .bind(ordinals)
+            .bind(binds.ids)
+            .bind(binds.names)
+            .bind(binds.descriptions)
+            .bind(binds.languages)
+            .bind(binds.ordinals)
             .fetch_all(&mut **tx)
             .await
             .map_err(database_error)
@@ -289,5 +287,11 @@ fn translations_binds(id: i64, translations: Vec<SampleTranslation>) -> Translat
         ordinals.push(translation.ordinal);
     }
 
-    TranslationsBindsResult(ids, names, descriptions, languages, ordinals)
+    TranslationsBindsResult {
+        ids,
+        names,
+        descriptions,
+        languages,
+        ordinals,
+    }
 }
