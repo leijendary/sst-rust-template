@@ -11,7 +11,7 @@ use super::model::{SampleDetail, SampleList, SampleRequest, SampleSeekFilter, Sa
 
 const POINTER: &str = "/data/sample";
 
-struct TranslationsBindsResult {
+struct TranslationsBinds {
     ids: Vec<i64>,
     names: Vec<String>,
     descriptions: Vec<Option<String>>,
@@ -272,7 +272,7 @@ impl SampleRepository {
     }
 }
 
-fn translations_binds(id: i64, translations: Vec<SampleTranslation>) -> TranslationsBindsResult {
+fn translations_binds(id: i64, translations: Vec<SampleTranslation>) -> TranslationsBinds {
     let len = translations.len();
     let ids = vec![id; len];
     let mut names: Vec<String> = Vec::with_capacity(len);
@@ -287,7 +287,7 @@ fn translations_binds(id: i64, translations: Vec<SampleTranslation>) -> Translat
         ordinals.push(translation.ordinal);
     }
 
-    TranslationsBindsResult {
+    TranslationsBinds {
         ids,
         names,
         descriptions,
