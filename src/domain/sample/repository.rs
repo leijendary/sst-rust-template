@@ -180,7 +180,7 @@ impl SampleRepository {
     pub async fn delete(&self, id: i64, version: i16, user_id: String) -> Result<(), ErrorResult> {
         const SQL: &str = "update sample
             set version = version + 1, deleted_by = $3, deleted_at = now()
-            where id = $1 and version = $2";
+            where id = $1 and version = $2 and deleted_at is null";
         let result = query(SQL)
             .bind(id)
             .bind(version)
