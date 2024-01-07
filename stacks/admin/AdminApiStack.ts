@@ -24,38 +24,38 @@ export function AdminApiStack({ stack }: StackContext) {
     routes: {
       "GET /api/admin/samples": {
         function: {
-          handler: "functions/api/admin/samples/admin_sample_list.rs",
+          handler: "./api_admin_sample_list.rs",
           description: "Admin: List of sample records.",
         },
       },
       "POST /api/admin/samples": {
         function: {
-          handler: "functions/api/admin/samples/admin_sample_create.rs",
+          handler: "./api_admin_sample_create.rs",
           description: "Admin: Create a sample record.",
         },
       },
       "GET /api/admin/samples/{id}": {
         function: {
-          handler: "functions/api/admin/samples/admin_sample_get.rs",
+          handler: "./api_admin_sample_get.rs",
           description: "Admin: Get a single sample record.",
         },
       },
       "PUT /api/admin/samples/{id}": {
         function: {
-          handler: "functions/api/admin/samples/admin_sample_update.rs",
+          handler: "./api_admin_sample_update.rs",
           description: "Admin: Update a specific single sample record.",
         },
       },
       "DELETE /api/admin/samples/{id}": {
         function: {
-          handler: "functions/api/admin/samples/admin_sample_delete.rs",
+          handler: "./api_admin_sample_delete.rs",
           description: "Admin: Soft delete a specific single sample record.",
         },
       },
       $default: {
         authorizer: "none",
         function: {
-          handler: "functions/api/default.rs",
+          handler: "./api_default.rs",
           description: "Admin: Default route handler.",
         },
       },

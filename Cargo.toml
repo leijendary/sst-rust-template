@@ -35,35 +35,35 @@ default = ["lambda"]
 lambda = ["lambda_runtime", "lambda_http"]
 
 [[bin]]
-name = "default"
+name = "api_default"
 path = "functions/api/default.rs"
 
 # Admin APIs
 [[bin]]
-name = "admin_sample_list"
-path = "functions/api/admin/samples/admin_sample_list.rs"
+name = "api_admin_sample_list"
+path = "functions/api/admin/samples/list.rs"
 
 [[bin]]
-name = "admin_sample_create"
-path = "functions/api/admin/samples/admin_sample_create.rs"
+name = "api_admin_sample_create"
+path = "functions/api/admin/samples/create.rs"
 
 [[bin]]
-name = "admin_sample_get"
-path = "functions/api/admin/samples/admin_sample_get.rs"
+name = "api_admin_sample_get"
+path = "functions/api/admin/samples/get.rs"
 
 [[bin]]
-name = "admin_sample_update"
-path = "functions/api/admin/samples/admin_sample_update.rs"
+name = "api_admin_sample_update"
+path = "functions/api/admin/samples/update.rs"
 
 [[bin]]
-name = "admin_sample_delete"
-path = "functions/api/admin/samples/admin_sample_delete.rs"
+name = "api_admin_sample_delete"
+path = "functions/api/admin/samples/delete.rs"
 
 # Customer APIs
 [[bin]]
-name = "sample_seek"
-path = "functions/api/v1/samples/sample_seek.rs"
+name = "api_v1_sample_seek"
+path = "functions/api/v1/samples/seek.rs"
 
 [[bin]]
-name = "sample_get"
-path = "functions/api/v1/samples/sample_get.rs"
+name = "api_v1_sample_get"
+path = "functions/api/v1/samples/get.rs"
