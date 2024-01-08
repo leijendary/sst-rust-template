@@ -1,0 +1,1 @@
+delete from sample_translation where id = $1 and language <> all($2)
