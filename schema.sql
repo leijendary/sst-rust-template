@@ -14,8 +14,7 @@ create table sample (
 );
 
 -- Unique constraint: sample.name
-create unique index sample_name_key on sample(lower(name::text))
-where deleted_at is null;
+create unique index sample_name_key on sample(lower(name::text)) where deleted_at is null;
 
 -- Index (desc): sample.created_at, sample.id
 create index sample_created_at_id_idx on sample(created_at desc, id desc);
