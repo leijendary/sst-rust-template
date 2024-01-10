@@ -1,10 +1,10 @@
 import { Api, StackContext, use } from "sst/constructs";
-import { DatabaseStack } from "../DatabaseStack";
-import { CustomerAuthStack } from "./CustomerAuthStack";
+import { Database } from "../Database";
+import { CustomerAuth } from "./CustomerAuth";
 
-export function CustomerApiStack({ stack }: StackContext) {
-  const { auth } = use(CustomerAuthStack);
-  const database = use(DatabaseStack);
+export function CustomerApi({ stack }: StackContext) {
+  const { auth } = use(CustomerAuth);
+  const database = use(Database);
   const api = new Api(stack, "Customer", {
     authorizers: {
       jwt: {

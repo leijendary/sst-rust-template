@@ -1,6 +1,6 @@
 use lambda_http::{run, Body, Error, Request, Response};
 use lambda_runtime::service_fn;
-use sst_rust::{
+use sst_rust_template::{
     config::tracing::enable_tracing,
     database::postgres::connect_postgres,
     domain::sample::{repository::SampleRepository, service::SampleService},
@@ -15,7 +15,7 @@ async fn handler(service: &SampleService, event: Request) -> Result<Response<Bod
         Err(error) => return error_response(error),
     };
     let language = get_language(&event);
-    let result = service.get(id, true, &language).await;
+    let result = service.get(id, false, &language).await;
 
     json_response(200, result)
 }
@@ -25,7 +25,7 @@ async fn main() -> Result<(), Error> {
     enable_tracing();
 
     let client = secret_client().await;
-    let pool = connect_postgres(&client, 1).await;
+    let pool = connect_postgres(&client, 2).await;
     let repository = SampleRepository { pool };
     let service = &SampleService { repository };
 

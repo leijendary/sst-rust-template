@@ -1,10 +1,10 @@
 import { Api, StackContext, use } from "sst/constructs";
-import { DatabaseStack } from "../DatabaseStack";
-import { AdminAuthStack } from "./AdminAuthStack";
+import { Database } from "../Database";
+import { AdminAuth } from "./AdminAuth";
 
-export function AdminApiStack({ stack }: StackContext) {
-  const { auth } = use(AdminAuthStack);
-  const database = use(DatabaseStack);
+export function AdminApi({ stack }: StackContext) {
+  const { auth } = use(AdminAuth);
+  const database = use(Database);
   const api = new Api(stack, "Admin", {
     authorizers: {
       jwt: {

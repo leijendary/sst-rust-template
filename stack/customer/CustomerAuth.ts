@@ -1,6 +1,6 @@
 import { Cognito, StackContext } from "sst/constructs";
 
-export function CustomerAuthStack({ stack, app }: StackContext) {
+export function CustomerAuth({ stack, app }: StackContext) {
   const domainPrefix = `${app.stage === "prod" ? "" : `${app.stage}-`}${app.name}-customer`;
   const auth = new Cognito(stack, "Customer", {
     cdk: {

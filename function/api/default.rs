@@ -1,6 +1,6 @@
 use lambda_http::{run, Body, Error, Request, Response};
 use lambda_runtime::service_fn;
-use sst_rust::{
+use sst_rust_template::{
     config::tracing::enable_tracing, error::result::path_not_found, response::json::error_response,
 };
 

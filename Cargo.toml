@@ -1,5 +1,5 @@
 [package]
-name = "sst-rust"
+name = "sst-rust-template"
 version = "0.1.0"
 edition = "2021"
 
@@ -36,34 +36,34 @@ lambda = ["lambda_runtime", "lambda_http"]
 
 [[bin]]
 name = "api_default"
-path = "functions/api/default.rs"
+path = "function/api/default.rs"
 
 # Admin APIs
 [[bin]]
 name = "api_admin_sample_list"
-path = "functions/api/admin/samples/list.rs"
+path = "function/api/admin/samples/list.rs"
 
 [[bin]]
 name = "api_admin_sample_create"
-path = "functions/api/admin/samples/create.rs"
+path = "function/api/admin/samples/create.rs"
 
 [[bin]]
 name = "api_admin_sample_get"
-path = "functions/api/admin/samples/get.rs"
+path = "function/api/admin/samples/get.rs"
 
 [[bin]]
 name = "api_admin_sample_update"
-path = "functions/api/admin/samples/update.rs"
+path = "function/api/admin/samples/update.rs"
 
 [[bin]]
 name = "api_admin_sample_delete"
-path = "functions/api/admin/samples/delete.rs"
+path = "function/api/admin/samples/delete.rs"
 
 # Customer APIs
 [[bin]]
 name = "api_v1_sample_seek"
-path = "functions/api/v1/samples/seek.rs"
+path = "function/api/v1/samples/seek.rs"
 
 [[bin]]
 name = "api_v1_sample_get"
-path = "functions/api/v1/samples/get.rs"
+path = "function/api/v1/samples/get.rs"

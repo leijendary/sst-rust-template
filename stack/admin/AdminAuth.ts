@@ -1,6 +1,6 @@
 import { Cognito, StackContext } from "sst/constructs";
 
-export function AdminAuthStack({ stack, app }: StackContext) {
+export function AdminAuth({ stack, app }: StackContext) {
   const domainPrefix = `${app.stage === "prod" ? "" : `${app.stage}-`}${app.name}-admin`;
   const auth = new Cognito(stack, "Admin", {
     cdk: {

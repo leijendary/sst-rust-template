@@ -1,9 +1,11 @@
+import path from "path";
 import { SSTConfig } from "sst";
-import { DatabaseStack } from "./stacks/DatabaseStack";
-import { AdminApiStack } from "./stacks/admin/AdminApiStack";
-import { AdminAuthStack } from "./stacks/admin/AdminAuthStack";
-import { CustomerApiStack } from "./stacks/customer/CustomerApiStack";
-import { CustomerAuthStack } from "./stacks/customer/CustomerAuthStack";
+import { App } from "sst/constructs";
+import { Database } from "./stack/Database";
+import { AdminApi } from "./stack/admin/AdminApi";
+import { AdminAuth } from "./stack/admin/AdminAuth";
+import { CustomerApi } from "./stack/customer/CustomerApi";
+import { CustomerAuth } from "./stack/customer/CustomerAuth";
 
 export default {
   config(_input) {
@@ -13,21 +15,22 @@ export default {
     };
   },
   stacks(app) {
-    if (app.stage === "dev") {
+    if (app.stage !== "prod") {
       app.setDefaultRemovalPolicy("destroy");
     }
 
-    app.setDefaultFunctionProps({
-      architecture: "arm_64",
-      logRetention: app.stage === "prod" ? "three_months" : "one_week",
-      runtime: "rust",
-      timeout: "30 seconds",
-    });
-    app
-      .stack(DatabaseStack)
-      .stack(CustomerAuthStack)
-      .stack(CustomerApiStack)
-      .stack(AdminAuthStack)
-      .stack(AdminApiStack);
+    functionDefaults(app);
+
+    app.stack(Database).stack(CustomerAuth).stack(CustomerApi).stack(AdminAuth).stack(AdminApi);
   },
 } satisfies SSTConfig;
+
+function functionDefaults(app: App) {
+  app.setDefaultFunctionProps({
+    architecture: "arm_64",
+    functionName: ({ stack, functionProps }) => `${stack.stackName}-${path.parse(functionProps.handler!!).name}`,
+    logRetention: app.stage === "prod" ? "three_months" : "one_week",
+    runtime: "rust",
+    timeout: "30 seconds",
+  });
+}

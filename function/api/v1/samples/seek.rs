@@ -1,21 +1,22 @@
 use lambda_http::{run, Body, Error, Request, Response};
 use lambda_runtime::service_fn;
-use sst_rust::{
+use sst_rust_template::{
     config::tracing::enable_tracing,
     database::postgres::connect_postgres,
-    domain::sample::{repository::SampleRepository, service::SampleService},
-    request::{header::get_language, path::path_param},
-    response::json::{error_response, json_response},
+    domain::sample::{
+        model::SampleSeekFilter, repository::SampleRepository, service::SampleService,
+    },
+    request::{header::get_language, query::query_param, seek::SeekRequest},
+    response::json::json_response,
     storage::secret::secret_client,
 };
 
 async fn handler(service: &SampleService, event: Request) -> Result<Response<Body>, Error> {
-    let id = match path_param::<i64>(&event, "id") {
-        Ok(id) => id,
-        Err(error) => return error_response(error),
-    };
     let language = get_language(&event);
-    let result = service.get(id, false, &language).await;
+    let query = query_param(&event, "query");
+    let filter = &SampleSeekFilter { language, query };
+    let seek_request = &SeekRequest::new(&event);
+    let result = service.seek(filter, seek_request).await;
 
     json_response(200, result)
 }
@@ -25,7 +26,7 @@ async fn main() -> Result<(), Error> {
     enable_tracing();
 
     let client = secret_client().await;
-    let pool = connect_postgres(&client, 2).await;
+    let pool = connect_postgres(&client, 1).await;
     let repository = SampleRepository { pool };
     let service = &SampleService { repository };
 
