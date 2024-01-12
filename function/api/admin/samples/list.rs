@@ -22,7 +22,7 @@ async fn main() -> Result<(), Error> {
     enable_tracing();
 
     let client = secret_client().await;
-    let pool = connect_postgres(&client, 2).await;
+    let pool = connect_postgres(&client).await;
     let repository = SampleRepository { pool };
     let service = &SampleService { repository };
 
