@@ -24,8 +24,8 @@ export function AdminApi({ stack }: StackContext) {
     routes: {
       "GET /api/admin/samples": {
         function: {
-          handler: "./api_admin_sample_list.rs",
-          description: "Admin: List of sample records.",
+          handler: "./api_admin_sample_page.rs",
+          description: "Admin: Page of sample records.",
         },
       },
       "POST /api/admin/samples": {

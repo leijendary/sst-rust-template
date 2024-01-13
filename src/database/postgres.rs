@@ -1,7 +1,7 @@
 use std::env;
 
 use aws_sdk_secretsmanager::Client;
-use sqlx::{postgres::PgPoolOptions, PgPool, Postgres, Transaction};
+use sqlx::{PgPool, Postgres, Transaction};
 
 use crate::error::{parser::database_error, result::ErrorResult};
 
@@ -13,8 +13,7 @@ pub async fn connect_postgres(client: &Client) -> PgPool {
         None => url_from_secret(client).await,
     };
 
-    PgPoolOptions::new()
-        .connect(&url)
+    PgPool::connect(&url)
         .await
         .expect("Unable to connect to PostgreSQL")
 }

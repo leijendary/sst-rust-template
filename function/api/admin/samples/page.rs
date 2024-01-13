@@ -12,7 +12,7 @@ use sst_rust_template::{
 async fn handler(service: &SampleService, event: Request) -> Result<Response<Body>, Error> {
     let query = query_param(&event, "query");
     let page_request = PageRequest::new(&event);
-    let result = service.list(&query, &page_request).await;
+    let result = service.page(&query, &page_request).await;
 
     json_response(200, result)
 }

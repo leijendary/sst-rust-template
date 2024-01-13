@@ -27,7 +27,7 @@ impl SampleService {
         Ok(Seek::new(list, seek_request))
     }
 
-    pub async fn list(
+    pub async fn page(
         &self,
         query: &Option<String>,
         page_request: &PageRequest,

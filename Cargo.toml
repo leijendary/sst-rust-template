@@ -40,8 +40,8 @@ path = "function/api/default.rs"
 
 # Admin APIs
 [[bin]]
-name = "api_admin_sample_list"
-path = "function/api/admin/samples/list.rs"
+name = "api_admin_sample_page"
+path = "function/api/admin/samples/page.rs"
 
 [[bin]]
 name = "api_admin_sample_create"
