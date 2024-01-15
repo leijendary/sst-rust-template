@@ -5,10 +5,8 @@ use sqlx::{PgPool, Postgres, Transaction};
 
 use crate::error::{parser::database_error, result::ErrorResult};
 
-const DATABASE_URL: &str = "DATABASE_URL";
-
 pub async fn connect_postgres(client: &Client) -> PgPool {
-    let url = match env::var_os(DATABASE_URL) {
+    let url = match env::var_os("DATABASE_URL") {
         Some(url) => url.into_string().expect("DATABASE_URL is not set"),
         None => url_from_secret(client).await,
     };
@@ -32,7 +30,7 @@ pub async fn rollback(tx: Transaction<'_, Postgres>) -> Result<(), ErrorResult> 
 
 async fn url_from_secret(client: &Client) -> String {
     let prefix = env::var("SST_SSM_PREFIX").expect("SST_SSM_PREFIX is not set");
-    let key = format!("{prefix}Secret/{DATABASE_URL}/value");
+    let key = format!("{prefix}Secret/DATABASE_URL/value");
 
     client
         .get_secret_value()
