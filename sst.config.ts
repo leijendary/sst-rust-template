@@ -1,3 +1,4 @@
+import { Tags } from "aws-cdk-lib/core";
 import path from "path";
 import { SSTConfig } from "sst";
 import { App } from "sst/constructs";
@@ -19,11 +20,17 @@ export default {
       app.setDefaultRemovalPolicy("destroy");
     }
 
+    resourceTags(app);
     functionDefaults(app);
 
     app.stack(Database).stack(CustomerAuth).stack(CustomerApi).stack(AdminAuth).stack(AdminApi);
   },
 } satisfies SSTConfig;
+
+function resourceTags(app: App) {
+  const tags = Tags.of(app);
+  tags.add("sst:region", app.region);
+}
 
 function functionDefaults(app: App) {
   app.setDefaultFunctionProps({
