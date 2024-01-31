@@ -34,6 +34,7 @@ serde_trim = "1.0.0"
 default = ["lambda"]
 lambda = ["lambda_runtime", "lambda_http"]
 
+# Default API
 [[bin]]
 name = "api_default"
 path = "function/api/default.rs"
