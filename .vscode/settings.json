@@ -3,5 +3,8 @@
     "**/.sst": true
   },
   "rust-analyzer.linkedProjects": ["./Cargo.toml"],
-  "rust-analyzer.showUnlinkedFileNotification": false
+  "rust-analyzer.showUnlinkedFileNotification": false,
+  "yaml.schemas": {
+    "https://json.schemastore.org/github-workflow.json": ".github/workflows/deploy.yaml"
+  }
 }

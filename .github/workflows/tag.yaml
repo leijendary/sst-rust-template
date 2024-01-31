@@ -1,0 +1,32 @@
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  test-staging:
+    name: Test staging
+    uses: ./.github/workflows/test.yaml
+    with:
+      environment: staging
+    secrets: inherit
+  test-prod:
+    name: Test production
+    uses: ./.github/workflows/test.yaml
+    with:
+      environment: prod
+    secrets: inherit
+  deploy-staging:
+    needs: build-staging
+    name: Deploy staging
+    uses: ./.github/workflows/deploy.yaml
+    with:
+      environment: staging
+    secrets: inherit
+  deploy-prod:
+    needs: build-prod
+    name: Deploy production
+    uses: ./.github/workflows/deploy.yaml
+    with:
+      environment: prod
+    secrets: inherit

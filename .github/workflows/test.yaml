@@ -1,0 +1,28 @@
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: latest
+          cache: npm
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Execute npm test
+        env:
+          ENVIRONMENT: ${{ inputs.environment }}
+          ORGANIZATION: ${{ vars.ORGANIZATION }}
+        run: |
+          npm ci
+          tsc
+          npm test
