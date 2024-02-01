@@ -25,8 +25,8 @@ jobs:
             target/
       - name: Execute cargo test
         run: cargo test
-  unit:
-    name: Unit
+  infra:
+    name: Infra
     runs-on: ubuntu-latest
     timeout-minutes: 5
     environment: ${{ inputs.environment }}
@@ -46,11 +46,8 @@ jobs:
         with:
           node-version: lts/Hydrogen
           cache: npm
-      - name: Execute npm ci
-        run: npm ci
-      - name: Execute npm build
-        run: npm run build
       - name: Execute npm test
         run: |
+          npm ci
           npm run typecheck
           npm test -- --stage ${{ inputs.environment }}
