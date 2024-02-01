@@ -23,9 +23,9 @@ To deploy the stack to an AWS account, you will need to follow these [IAM Permis
 
 For more information, go to https://sst.dev
 
-# Deploying
+## Deploying
 
-## Pre-requisites
+### Pre-requisites
 
 Run the following commands before deploying:
 
@@ -33,7 +33,7 @@ Run the following commands before deploying:
 2. `brew install cargo-lambda`
 3. `brew install zig`
 
-## Deploy to a stage
+### Deploy to a stage
 
 `npm run deploy -- --stage <stage>`
 
