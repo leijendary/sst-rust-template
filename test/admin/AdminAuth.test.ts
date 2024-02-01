@@ -10,7 +10,6 @@ test("Created Admin user pool", async () => {
   app.stack(AdminAuth);
 
   const template = Template.fromStack(getStack(AdminAuth));
-
   template.hasResourceProperties("AWS::Cognito::UserPool", {
     AutoVerifiedAttributes: ["email"],
     UsernameAttributes: ["email"],

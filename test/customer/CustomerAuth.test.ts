@@ -10,7 +10,6 @@ test("Created Customer user pool", async () => {
   app.stack(CustomerAuth);
 
   const template = Template.fromStack(getStack(CustomerAuth));
-
   template.hasResourceProperties("AWS::Cognito::UserPool", {
     AdminCreateUserConfig: {
       AllowAdminCreateUserOnly: false,
