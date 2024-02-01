@@ -37,7 +37,7 @@ jobs:
         with:
           node-version: lts/Hydrogen
           cache: npm
-      - name: Deploy AWS CDK
+      - name: Deploy SST
         run: |
           npm ci
-          npm run sst deploy -- --stage ${{ inputs.environment }}
+          npm run deploy -- --stage ${{ inputs.environment }}
