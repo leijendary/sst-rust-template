@@ -20,13 +20,10 @@ jobs:
         with:
           aws-region: ${{ vars.AWS_REGION }}
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/DeploymentRole-${{ inputs.environment }}
-      - name: Login to registry
-        uses: aws-actions/amazon-ecr-login@v2
-        with:
-          mask-password: true
       - name: Checkout
         uses: actions/checkout@v4
-      - uses: actions/cache@v4
+      - name: Cache
+        uses: actions/cache@v4
         with:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           path: |
