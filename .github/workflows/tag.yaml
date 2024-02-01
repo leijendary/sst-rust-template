@@ -17,14 +17,14 @@ jobs:
       environment: prod
     secrets: inherit
   deploy-staging:
-    needs: build-staging
+    needs: test-staging
     name: Deploy staging
     uses: ./.github/workflows/deploy.yaml
     with:
       environment: staging
     secrets: inherit
   deploy-prod:
-    needs: build-prod
+    needs: test-prod
     name: Deploy production
     uses: ./.github/workflows/deploy.yaml
     with:
