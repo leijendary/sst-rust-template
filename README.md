@@ -9,19 +9,23 @@
 - AWS
 - [SST](https://sst.dev)
 
-### To run the template:
+## IAM Role
 
-1. Copy `.env` to `.env.local`.
-2. Add your local machine specific configuaration to `.env.local`.
+To deploy the stack to an AWS account, you will need to follow these [IAM Permissions](https://docs.sst.dev/advanced/iam-credentials#iam-permissions).
+
+# Run locally
+
+1. Copy `.env.example` to `.env`.
+2. Add your local machine specific configuaration to `.env`.
 3. Add secrets via SST. Refer to https://docs.sst.dev/config.
 4. (Optional) use `schema.sql` as your base database schema.
 5. Run `npm run dev` using your terminal or use VSCode's **Run and Debug** tab.
 
 For more information, go to https://sst.dev
 
-# Deploying:
+# Deploying
 
-## Pre-requisites:
+## Pre-requisites
 
 Run the following commands before deploying:
 
@@ -29,7 +33,7 @@ Run the following commands before deploying:
 2. `brew install cargo-lambda`
 3. `brew install zig`
 
-## Deploy to stage:
+## Deploy to a stage
 
 `npm run deploy -- --stage <stage>`
 
