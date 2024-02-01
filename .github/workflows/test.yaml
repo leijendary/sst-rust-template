@@ -30,7 +30,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     environment: ${{ inputs.environment }}
+    permissions:
+      id-token: write
+      contents: read
     steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/DeploymentRole-${{ inputs.environment }}
       - name: Checkout
         uses: actions/checkout@v3
       - name: Setup Node.js
