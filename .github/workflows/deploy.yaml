@@ -38,6 +38,18 @@ jobs:
         with:
           node-version: lts/Hydrogen
           cache: npm
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Install Zig toolchain
+        uses: korandoru/setup-zig@v1
+        with:
+          zig-version: master
+      - name: Install Cargo Lambda
+        uses: jaxxstorm/action-install-gh-release@v1.10.0
+        with:
+          repo: cargo-lambda/cargo-lambda
+          platform: linux
+          arch: x86_64
       - name: Deploy SST
         run: |
           npm ci
