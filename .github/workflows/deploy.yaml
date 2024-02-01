@@ -50,7 +50,6 @@ jobs:
           repo: cargo-lambda/cargo-lambda
           tag: v1.0.3
           platform: linux
-          arch: x86_64
           cache: enable
       - name: Deploy SST
         run: |
