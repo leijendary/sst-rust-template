@@ -14,7 +14,6 @@ test("Created Admin api gateway", async () => {
   app.stack(AdminApi);
 
   const template = Template.fromStack(getStack(AdminApi));
-
   template.hasResourceProperties("AWS::ApiGatewayV2::Api", {
     CorsConfiguration: {
       AllowCredentials: false,
@@ -24,9 +23,32 @@ test("Created Admin api gateway", async () => {
     },
     ProtocolType: "HTTP",
   });
-
   template.hasResourceProperties("AWS::ApiGatewayV2::Authorizer", {
     AuthorizerType: "JWT",
     IdentitySource: ["$request.header.Authorization"],
+  });
+  template.hasResourceProperties("AWS::ApiGatewayV2::Route", {
+    AuthorizationType: "JWT",
+    RouteKey: "GET /api/admin/samples",
+  });
+  template.hasResourceProperties("AWS::ApiGatewayV2::Route", {
+    AuthorizationType: "JWT",
+    RouteKey: "POST /api/admin/samples",
+  });
+  template.hasResourceProperties("AWS::ApiGatewayV2::Route", {
+    AuthorizationType: "JWT",
+    RouteKey: "GET /api/admin/samples/{id}",
+  });
+  template.hasResourceProperties("AWS::ApiGatewayV2::Route", {
+    AuthorizationType: "JWT",
+    RouteKey: "PUT /api/admin/samples/{id}",
+  });
+  template.hasResourceProperties("AWS::ApiGatewayV2::Route", {
+    AuthorizationType: "JWT",
+    RouteKey: "DELETE /api/admin/samples/{id}",
+  });
+  template.hasResourceProperties("AWS::ApiGatewayV2::Route", {
+    AuthorizationType: "NONE",
+    RouteKey: "$default",
   });
 });

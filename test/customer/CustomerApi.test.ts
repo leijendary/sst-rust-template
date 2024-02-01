@@ -14,7 +14,6 @@ test("Created Customer api gateway", async () => {
   app.stack(CustomerApi);
 
   const template = Template.fromStack(getStack(CustomerApi));
-
   template.hasResourceProperties("AWS::ApiGatewayV2::Api", {
     CorsConfiguration: {
       AllowCredentials: false,
@@ -24,9 +23,20 @@ test("Created Customer api gateway", async () => {
     },
     ProtocolType: "HTTP",
   });
-
   template.hasResourceProperties("AWS::ApiGatewayV2::Authorizer", {
     AuthorizerType: "JWT",
     IdentitySource: ["$request.header.Authorization"],
+  });
+  template.hasResourceProperties("AWS::ApiGatewayV2::Route", {
+    AuthorizationType: "JWT",
+    RouteKey: "GET /api/v1/samples",
+  });
+  template.hasResourceProperties("AWS::ApiGatewayV2::Route", {
+    AuthorizationType: "JWT",
+    RouteKey: "GET /api/v1/samples/{id}",
+  });
+  template.hasResourceProperties("AWS::ApiGatewayV2::Route", {
+    AuthorizationType: "NONE",
+    RouteKey: "$default",
   });
 });
