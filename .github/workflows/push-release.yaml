@@ -9,6 +9,7 @@ jobs:
     uses: ./.github/workflows/test.yaml
     with:
       environment: test
+    secrets: inherit
   deploy:
     needs: test
     name: Deploy
