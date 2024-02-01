@@ -6,6 +6,25 @@ on:
         type: string
 
 jobs:
+  cargo:
+    name: Cargo
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - uses: actions/cache@v3
+        with:
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+      - name: Execute cargo test
+        run: cargo test
   unit:
     name: Unit
     runs-on: ubuntu-latest
@@ -19,11 +38,11 @@ jobs:
         with:
           node-version: lts/Hydrogen
           cache: npm
+      - name: Execute npm ci
+        run: npm ci
+      - name: Execute npm build
+        run: npm run build
       - name: Execute npm test
-        env:
-          ENVIRONMENT: ${{ inputs.environment }}
-          ORGANIZATION: ${{ vars.ORGANIZATION }}
         run: |
-          npm ci
-          tsc
-          npm test
+          npm run typecheck
+          npm test -- --stage ${{ inputs.environment }}
