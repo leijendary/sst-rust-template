@@ -147,7 +147,7 @@ impl SampleRepository {
     }
 
     pub async fn list_translations(&self, id: i64) -> Result<Vec<SampleTranslation>, ErrorResult> {
-        const SQL: &str = include_str!("sql/list_translations.sql");
+        const SQL: &str = include_str!("sql/translations_list.sql");
 
         query_as::<_, SampleTranslation>(SQL)
             .bind(id)
@@ -162,7 +162,7 @@ impl SampleRepository {
         id: i64,
         translations: Vec<SampleTranslation>,
     ) -> Result<Vec<SampleTranslation>, ErrorResult> {
-        const SQL: &str = include_str!("sql/create_translations.sql");
+        const SQL: &str = include_str!("sql/translations_create.sql");
         let binds = translations_binds(id, translations);
 
         query_as::<_, SampleTranslation>(SQL)
@@ -182,7 +182,7 @@ impl SampleRepository {
         id: i64,
         translations: Vec<SampleTranslation>,
     ) -> Result<Vec<SampleTranslation>, ErrorResult> {
-        const SQL_DELETE: &str = include_str!("sql/delete_translations.sql");
+        const SQL_DELETE: &str = include_str!("sql/translations_delete.sql");
         let binds = translations_binds(id, translations);
 
         query(SQL_DELETE)
@@ -192,7 +192,7 @@ impl SampleRepository {
             .await
             .map_err(database_error)?;
 
-        const SQL_UPSERT: &str = include_str!("sql/upsert_translations.sql");
+        const SQL_UPSERT: &str = include_str!("sql/translations_upsert.sql");
 
         query_as::<_, SampleTranslation>(SQL_UPSERT)
             .bind(binds.ids)
