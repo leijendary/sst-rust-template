@@ -14,7 +14,7 @@
 1. Copy `.env.example` to `.env`.
 2. Add your local machine specific configuaration to `.env`.
 3. Add secrets via SST. Refer to https://docs.sst.dev/config.
-4. (Optional) use `schema.sql` as your base database schema.
+4. (Optional) use `migrations/1_init.sql` as your base database schema. I usually use neon.tech for branching.
 5. Run `npm run dev` using your terminal or use VSCode's **Run and Debug** tab.
 
 For more information, go to https://sst.dev
