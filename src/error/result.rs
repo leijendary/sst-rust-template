@@ -118,12 +118,13 @@ pub fn invalid_parameter(name: String) -> ErrorResult {
     }
 }
 
-pub fn resource_not_found(id: i64, pointer: &str) -> ErrorResult {
+pub fn id_not_found(entity: &str, id: i64) -> ErrorResult {
+    let pointer = format!("/data/{entity}/id");
     let error = ErrorDetail {
         id: Some(Value::from(id)),
         code: "not_found".to_owned(),
         source: ErrorSource {
-            pointer: Some(pointer.to_owned()),
+            pointer: Some(pointer),
             parameter: None,
             header: None,
             meta: None,
@@ -136,13 +137,14 @@ pub fn resource_not_found(id: i64, pointer: &str) -> ErrorResult {
     }
 }
 
-pub fn version_conflict(id: i64, pointer: &str, version: i16) -> ErrorResult {
+pub fn version_conflict(entity: &str, id: i64, version: i16) -> ErrorResult {
+    let pointer = format!("/data/{entity}/version");
     let meta = HashMap::from([("version".to_owned(), Value::from(version))]);
     let error = ErrorDetail {
         id: Some(Value::from(id)),
         code: "version_conflict".to_owned(),
         source: ErrorSource {
-            pointer: Some(pointer.to_owned()),
+            pointer: Some(pointer),
             parameter: None,
             header: None,
             meta: Some(meta),

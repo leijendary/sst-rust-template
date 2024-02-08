@@ -1,4 +1,4 @@
-use super::result::{resource_not_found, version_conflict, ErrorDetail, ErrorResult};
+use super::result::{id_not_found, version_conflict, ErrorDetail, ErrorResult};
 use crate::error::result::{internal_server, ErrorSource};
 use convert_case::{Case, Casing};
 use lazy_static::lazy_static;
@@ -22,14 +22,14 @@ lazy_static! {
             .expect("UNIQUE_REGEX is not a valid pattern");
 }
 
-pub fn resource_error(id: i64, pointer: &str, version: Option<i16>, err: Error) -> ErrorResult {
+pub fn resource_error(entity: &str, id: i64, version: Option<i16>, err: Error) -> ErrorResult {
     if !matches!(err, Error::RowNotFound) {
         return database_error(err);
     }
 
     match version {
-        Some(version) => version_conflict(id, pointer, version),
-        None => resource_not_found(id, pointer),
+        Some(version) => version_conflict(entity, id, version),
+        None => id_not_found(entity, id),
     }
 }
 

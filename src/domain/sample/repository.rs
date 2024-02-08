@@ -9,7 +9,7 @@ use sqlx::{query, query_as, PgPool, Postgres, Transaction};
 
 use super::model::{SampleDetail, SampleList, SampleRequest, SampleSeekFilter, SampleTranslation};
 
-const POINTER: &str = "/data/sample";
+const ENTITY: &str = "sample";
 
 struct TranslationsBinds {
     ids: Vec<i64>,
@@ -105,7 +105,7 @@ impl SampleRepository {
             .bind(language)
             .fetch_one(&self.pool)
             .await
-            .map_err(|error| resource_error(id, POINTER, None, error))
+            .map_err(|error| resource_error(ENTITY, id, None, error))
     }
 
     pub async fn update(
@@ -126,7 +126,7 @@ impl SampleRepository {
             .bind(&sample.last_modified_by)
             .fetch_one(&mut **tx)
             .await
-            .map_err(|error| resource_error(id, POINTER, Some(version), error))
+            .map_err(|error| resource_error(ENTITY, id, Some(version), error))
     }
 
     pub async fn delete(&self, id: i64, version: i16, user_id: String) -> Result<(), ErrorResult> {
@@ -137,10 +137,10 @@ impl SampleRepository {
             .bind(user_id)
             .execute(&self.pool)
             .await
-            .map_err(|error| resource_error(id, POINTER, Some(version), error))?;
+            .map_err(|error| resource_error(ENTITY, id, Some(version), error))?;
 
         if result.rows_affected() == 0 {
-            return Err(version_conflict(id, POINTER, version));
+            return Err(version_conflict(ENTITY, id, version));
         }
 
         Ok(())
