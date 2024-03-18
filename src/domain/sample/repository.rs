@@ -9,7 +9,7 @@ use sqlx::{query, query_as, PgPool, Postgres, Transaction};
 
 use super::model::{SampleDetail, SampleList, SampleRequest, SampleSeekFilter, SampleTranslation};
 
-const ENTITY: &str = "sample";
+static ENTITY: &str = "sample";
 
 struct TranslationsBinds {
     ids: Vec<i64>,
@@ -33,7 +33,7 @@ impl SampleRepository {
         filter: &SampleSeekFilter,
         seek_request: &SeekRequest,
     ) -> Result<Vec<SampleList>, ErrorResult> {
-        const SQL: &str = include_str!("sql/seek.sql");
+        static SQL: &str = include_str!("sql/seek.sql");
 
         query_as::<_, SampleList>(SQL)
             .bind(&filter.language)
@@ -51,7 +51,7 @@ impl SampleRepository {
         query: &Option<String>,
         page_request: &PageRequest,
     ) -> Result<Vec<SampleList>, ErrorResult> {
-        const SQL: &str = include_str!("sql/page.sql");
+        static SQL: &str = include_str!("sql/page.sql");
 
         query_as::<_, SampleList>(SQL)
             .bind(query)
@@ -63,7 +63,7 @@ impl SampleRepository {
     }
 
     pub async fn count(&self, query: &Option<String>) -> Result<i64, ErrorResult> {
-        const SQL: &str = include_str!("sql/count.sql");
+        static SQL: &str = include_str!("sql/count.sql");
 
         query_as(SQL)
             .bind(query)
@@ -78,7 +78,7 @@ impl SampleRepository {
         tx: &mut Transaction<'_, Postgres>,
         sample: &SampleRequest,
     ) -> Result<SampleDetail, ErrorResult> {
-        const SQL: &str = include_str!("sql/create.sql");
+        static SQL: &str = include_str!("sql/create.sql");
 
         query_as::<_, SampleDetail>(SQL)
             .bind(&sample.name)
@@ -97,7 +97,7 @@ impl SampleRepository {
         translate: bool,
         language: &Option<String>,
     ) -> Result<SampleDetail, ErrorResult> {
-        const SQL: &str = include_str!("sql/get.sql");
+        static SQL: &str = include_str!("sql/get.sql");
 
         query_as::<_, SampleDetail>(SQL)
             .bind(id)
@@ -115,7 +115,7 @@ impl SampleRepository {
         sample: &SampleRequest,
         version: i16,
     ) -> Result<SampleDetail, ErrorResult> {
-        const SQL: &str = include_str!("sql/update.sql");
+        static SQL: &str = include_str!("sql/update.sql");
 
         query_as::<_, SampleDetail>(SQL)
             .bind(id)
@@ -130,7 +130,7 @@ impl SampleRepository {
     }
 
     pub async fn delete(&self, id: i64, version: i16, user_id: String) -> Result<(), ErrorResult> {
-        const SQL: &str = include_str!("sql/delete.sql");
+        static SQL: &str = include_str!("sql/delete.sql");
         let result = query(SQL)
             .bind(id)
             .bind(version)
@@ -147,7 +147,7 @@ impl SampleRepository {
     }
 
     pub async fn list_translations(&self, id: i64) -> Result<Vec<SampleTranslation>, ErrorResult> {
-        const SQL: &str = include_str!("sql/translations_list.sql");
+        static SQL: &str = include_str!("sql/translations_list.sql");
 
         query_as::<_, SampleTranslation>(SQL)
             .bind(id)
@@ -162,7 +162,7 @@ impl SampleRepository {
         id: i64,
         translations: Vec<SampleTranslation>,
     ) -> Result<Vec<SampleTranslation>, ErrorResult> {
-        const SQL: &str = include_str!("sql/translations_create.sql");
+        static SQL: &str = include_str!("sql/translations_create.sql");
         let binds = translations_binds(id, translations);
 
         query_as::<_, SampleTranslation>(SQL)
@@ -182,7 +182,7 @@ impl SampleRepository {
         id: i64,
         translations: Vec<SampleTranslation>,
     ) -> Result<Vec<SampleTranslation>, ErrorResult> {
-        const SQL_DELETE: &str = include_str!("sql/translations_delete.sql");
+        static SQL_DELETE: &str = include_str!("sql/translations_delete.sql");
         let binds = translations_binds(id, translations);
 
         query(SQL_DELETE)
@@ -192,7 +192,7 @@ impl SampleRepository {
             .await
             .map_err(database_error)?;
 
-        const SQL_UPSERT: &str = include_str!("sql/translations_upsert.sql");
+        static SQL_UPSERT: &str = include_str!("sql/translations_upsert.sql");
 
         query_as::<_, SampleTranslation>(SQL_UPSERT)
             .bind(binds.ids)

@@ -48,7 +48,10 @@ pub struct SampleRequest {
     #[validate(range(min = 1, max = 99999999))]
     pub amount: i32,
     #[serde(default)]
-    #[validate(length(min = 1, max = 100), custom = "validate_unique_translation")]
+    #[validate(
+        length(min = 1, max = 100),
+        custom(function = "validate_unique_translation")
+    )]
     #[validate]
     pub translations: Vec<SampleTranslation>,
     #[serde(skip)]

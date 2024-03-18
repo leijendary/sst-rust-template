@@ -1,7 +1,7 @@
 use super::result::{id_not_found, version_conflict, ErrorDetail, ErrorResult};
 use crate::error::result::{internal_server, ErrorSource};
 use convert_case::{Case, Casing};
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use regex::Regex;
 use sqlx::{
     error::{
@@ -16,11 +16,10 @@ use sqlx::{
 use std::vec;
 use tracing::error;
 
-lazy_static! {
-    static ref UNIQUE_REGEX: Regex =
-        Regex::new(r"Key \((?:lower\()?([a-zA-Z0-9, ]+)+(?:::text)?\)")
-            .expect("UNIQUE_REGEX is not a valid pattern");
-}
+static UNIQUE_REGEX: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(r"Key \((?:lower\()?([a-zA-Z0-9, ]+)+(?:::text)?\)")
+        .expect("UNIQUE_REGEX is not a valid pattern")
+});
 
 pub fn resource_error(entity: &str, id: i64, version: Option<i16>, err: Error) -> ErrorResult {
     if !matches!(err, Error::RowNotFound) {
