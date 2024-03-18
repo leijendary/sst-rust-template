@@ -45,6 +45,7 @@ pub struct SampleRequest {
     #[serde(default, deserialize_with = "option_string_trim")]
     pub description: Option<String>,
     #[serde(default)]
+    // Last 2 digits are decimals
     #[validate(range(min = 1, max = 99999999))]
     pub amount: i32,
     #[serde(default)]
