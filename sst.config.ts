@@ -38,6 +38,6 @@ function functionDefaults(app: App) {
     functionName: ({ stack, functionProps }) => `${stack.stackName}-${path.parse(functionProps.handler!!).name}`,
     logRetention: app.stage === "prod" ? "three_months" : "one_week",
     runtime: "rust",
-    timeout: "30 seconds",
+    timeout: "1 minute",
   });
 }
