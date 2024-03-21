@@ -77,6 +77,7 @@ impl SampleRepository {
         &self,
         tx: &mut Transaction<'_, Postgres>,
         sample: &SampleRequest,
+        user_id: String,
     ) -> Result<SampleDetail, ErrorResult> {
         static SQL: &str = include_str!("sql/create.sql");
 
@@ -84,8 +85,8 @@ impl SampleRepository {
             .bind(&sample.name)
             .bind(&sample.description)
             .bind(sample.amount)
-            .bind(&sample.created_by)
-            .bind(&sample.last_modified_by)
+            .bind(&user_id)
+            .bind(&user_id)
             .fetch_one(&mut **tx)
             .await
             .map_err(database_error)
@@ -114,6 +115,7 @@ impl SampleRepository {
         id: i64,
         sample: &SampleRequest,
         version: i16,
+        user_id: String,
     ) -> Result<SampleDetail, ErrorResult> {
         static SQL: &str = include_str!("sql/update.sql");
 
@@ -123,7 +125,7 @@ impl SampleRepository {
             .bind(&sample.name)
             .bind(&sample.description)
             .bind(sample.amount)
-            .bind(&sample.last_modified_by)
+            .bind(user_id)
             .fetch_one(&mut **tx)
             .await
             .map_err(|error| resource_error(ENTITY, id, Some(version), error))

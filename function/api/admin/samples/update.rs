@@ -20,7 +20,7 @@ async fn handler(service: &SampleService, event: Request) -> Result<Response<Bod
         Err(error) => return error_response(error),
     };
     let version = query_version(&event);
-    let mut sample = match event.payload::<SampleRequest>()? {
+    let sample = match event.payload::<SampleRequest>()? {
         Some(value) => value,
         None => return error_response(required_body()),
     };
@@ -30,9 +30,7 @@ async fn handler(service: &SampleService, event: Request) -> Result<Response<Bod
         Err(error) => return error_response(error),
     }
 
-    sample.last_modified_by = user_id;
-
-    let result = service.update(id, sample, version).await;
+    let result = service.update(id, sample, version, user_id).await;
 
     json_response(201, result)
 }

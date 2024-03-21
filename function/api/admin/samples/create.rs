@@ -15,7 +15,7 @@ async fn handler(service: &SampleService, event: Request) -> Result<Response<Bod
         Ok(user_id) => user_id,
         Err(error) => return error_response(error),
     };
-    let mut sample = match event.payload::<SampleRequest>()? {
+    let sample = match event.payload::<SampleRequest>()? {
         Some(value) => value,
         None => return error_response(required_body()),
     };
@@ -25,10 +25,7 @@ async fn handler(service: &SampleService, event: Request) -> Result<Response<Bod
         Err(error) => return error_response(error),
     }
 
-    sample.created_by = user_id.to_owned();
-    sample.last_modified_by = user_id;
-
-    let result = service.create(sample).await;
+    let result = service.create(sample, user_id).await;
 
     json_response(201, result)
 }

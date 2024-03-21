@@ -55,10 +55,6 @@ pub struct SampleRequest {
     )]
     #[validate]
     pub translations: Vec<SampleTranslation>,
-    #[serde(skip)]
-    pub created_by: String,
-    #[serde(skip)]
-    pub last_modified_by: String,
 }
 
 #[derive(Debug, FromRow, Validate, Serialize, Deserialize)]

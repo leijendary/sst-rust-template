@@ -40,9 +40,13 @@ impl SampleService {
         Ok(Page::new(list, count, page_request))
     }
 
-    pub async fn create(&self, request: SampleRequest) -> Result<SampleDetail, ErrorResult> {
+    pub async fn create(
+        &self,
+        request: SampleRequest,
+        user_id: String,
+    ) -> Result<SampleDetail, ErrorResult> {
         let mut tx = begin(&self.repository.pool).await?;
-        let mut sample = self.repository.create(&mut tx, &request).await?;
+        let mut sample = self.repository.create(&mut tx, &request, user_id).await?;
         sample.translations = self
             .repository
             .create_translations(&mut tx, sample.id, request.translations)
@@ -80,11 +84,12 @@ impl SampleService {
         id: i64,
         request: SampleRequest,
         version: i16,
+        user_id: String,
     ) -> Result<SampleDetail, ErrorResult> {
         let mut tx = begin(&self.repository.pool).await?;
         let mut sample = self
             .repository
-            .update(&mut tx, id, &request, version)
+            .update(&mut tx, id, &request, version, user_id)
             .await?;
         sample.translations = self
             .repository
