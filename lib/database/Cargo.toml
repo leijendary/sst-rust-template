@@ -1,0 +1,13 @@
+[package]
+name = "database"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+model = { path = "../model" }
+sqlx = { workspace = true }
+convert_case = { workspace = true }
+once_cell = { workspace = true }
+regex = { workspace = true }
+tracing = { workspace = true }
+aws-sdk-secretsmanager = { workspace = true }

@@ -1,0 +1,53 @@
+[package]
+name = "sample"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+lambda = { path = "../../lib/lambda" }
+model = { path = "../../lib/model" }
+database = { path = "../../lib/database" }
+storage = { path = "../../lib/storage" }
+tokio = { workspace = true }
+lambda_http = { workspace = true }
+lambda_runtime = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+log = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+serde_with = { workspace = true }
+serde_trim = { workspace = true }
+time = { workspace = true }
+validator = { workspace = true }
+sqlx = { workspace = true }
+
+# Admin APIs
+[[bin]]
+name = "api_admin_sample_page"
+path = "src/api/admin/page.rs"
+
+[[bin]]
+name = "api_admin_sample_create"
+path = "src/api/admin/create.rs"
+
+[[bin]]
+name = "api_admin_sample_get"
+path = "src/api/admin/get.rs"
+
+[[bin]]
+name = "api_admin_sample_update"
+path = "src/api/admin/update.rs"
+
+[[bin]]
+name = "api_admin_sample_delete"
+path = "src/api/admin/delete.rs"
+
+# Customer APIs
+[[bin]]
+name = "api_v1_sample_seek"
+path = "src/api/v1/seek.rs"
+
+[[bin]]
+name = "api_v1_sample_get"
+path = "src/api/v1/get.rs"

@@ -1,0 +1,14 @@
+[package]
+name = "lambda"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+model = { path = "../model" }
+lambda_http = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+log = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+time = { workspace = true }

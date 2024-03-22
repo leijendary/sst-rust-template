@@ -1,0 +1,15 @@
+[package]
+name = "function"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+lambda = { path = "../lib/lambda" }
+model = { path = "../lib/model" }
+tokio = { workspace = true }
+lambda_http = { workspace = true }
+lambda_runtime = { workspace = true }
+
+[[bin]]
+name = "api_default"
+path = "src/api/default.rs"
