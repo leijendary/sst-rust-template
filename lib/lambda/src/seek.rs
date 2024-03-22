@@ -4,6 +4,7 @@ use model::seek::SeekRequest;
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 
 const SIZE_DEFAULT: i16 = 20;
+const SIZE_MIN: i16 = 1;
 
 pub trait ApiSeekRequest {
     fn read(request: &Request) -> SeekRequest;
@@ -11,8 +12,9 @@ pub trait ApiSeekRequest {
 
 impl ApiSeekRequest for SeekRequest {
     fn read(request: &Request) -> SeekRequest {
-        let size = query_param(request, "size").unwrap_or(SIZE_DEFAULT);
-        let limit = size + 1;
+        let size = query_param(request, "size")
+            .unwrap_or(SIZE_DEFAULT)
+            .max(SIZE_MIN);
         let created_at = match query_param::<String>(request, "createdAt") {
             Some(value) => match OffsetDateTime::parse(&value, &Rfc3339) {
                 Ok(value) => Some(value),
@@ -24,7 +26,7 @@ impl ApiSeekRequest for SeekRequest {
 
         SeekRequest {
             size,
-            limit,
+            limit: size + 1,
             created_at,
             id,
         }
