@@ -16,7 +16,7 @@ async fn handler(service: &SampleService, request: Request) -> Result<Response<B
     let seek_request = &SeekRequest::read(&request);
     let result = service.seek(filter, seek_request).await;
 
-    json_response(request, 200, result)
+    json_response(200, result)
 }
 
 #[tokio::main]

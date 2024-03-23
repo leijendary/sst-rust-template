@@ -14,16 +14,16 @@ use storage::secret::secret_client;
 async fn handler(service: &SampleService, request: Request) -> Result<Response<Body>, Error> {
     let user_id = match get_user_id(&request) {
         Ok(user_id) => user_id,
-        Err(error) => return error_response(request, error),
+        Err(error) => return error_response(error),
     };
     let id = match path_param::<i64>(&request, "id") {
         Ok(id) => id,
-        Err(error) => return error_response(request, error),
+        Err(error) => return error_response(error),
     };
     let version = query_version(&request);
     let result = service.delete(id, version, user_id).await;
 
-    json_response(request, 204, result)
+    json_response(204, result)
 }
 
 #[tokio::main]

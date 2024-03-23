@@ -13,12 +13,12 @@ use storage::secret::secret_client;
 async fn handler(service: &SampleService, request: Request) -> Result<Response<Body>, Error> {
     let id = match path_param::<i64>(&request, "id") {
         Ok(id) => id,
-        Err(error) => return error_response(request, error),
+        Err(error) => return error_response(error),
     };
     let language = get_language(&request);
     let result = service.get(id, false, &language).await;
 
-    json_response(request, 200, result)
+    json_response(200, result)
 }
 
 #[tokio::main]

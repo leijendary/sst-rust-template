@@ -13,21 +13,21 @@ use storage::secret::secret_client;
 async fn handler(service: &SampleService, request: Request) -> Result<Response<Body>, Error> {
     let user_id = match get_user_id(&request) {
         Ok(user_id) => user_id,
-        Err(error) => return error_response(request, error),
+        Err(error) => return error_response(error),
     };
     let sample = match request.payload::<SampleRequest>()? {
         Some(value) => value,
-        None => return error_response(request, required_body()),
+        None => return error_response(required_body()),
     };
 
     match validate(&sample) {
         Ok(_) => (),
-        Err(error) => return error_response(request, error),
+        Err(error) => return error_response(error),
     }
 
     let result = service.create(sample, user_id).await;
 
-    json_response(request, 201, result)
+    json_response(201, result)
 }
 
 #[tokio::main]

@@ -13,7 +13,7 @@ async fn handler(service: &SampleService, request: Request) -> Result<Response<B
     let page_request = PageRequest::read(&request);
     let result = service.page(&query, &page_request).await;
 
-    json_response(request, 200, result)
+    json_response(200, result)
 }
 
 #[tokio::main]
