@@ -10,24 +10,24 @@ use model::{error::required_body, validation::validate};
 use sample::{model::SampleRequest, repository::SampleRepository, service::SampleService};
 use storage::secret::secret_client;
 
-async fn handler(service: &SampleService, event: Request) -> Result<Response<Body>, Error> {
-    let user_id = match get_user_id(&event) {
+async fn handler(service: &SampleService, request: Request) -> Result<Response<Body>, Error> {
+    let user_id = match get_user_id(&request) {
         Ok(user_id) => user_id,
-        Err(error) => return error_response(error),
+        Err(error) => return error_response(request, error),
     };
-    let sample = match event.payload::<SampleRequest>()? {
+    let sample = match request.payload::<SampleRequest>()? {
         Some(value) => value,
-        None => return error_response(required_body()),
+        None => return error_response(request, required_body()),
     };
 
     match validate(&sample) {
         Ok(_) => (),
-        Err(error) => return error_response(error),
+        Err(error) => return error_response(request, error),
     }
 
     let result = service.create(sample, user_id).await;
 
-    json_response(201, result)
+    json_response(request, 201, result)
 }
 
 #[tokio::main]
@@ -39,8 +39,5 @@ async fn main() -> Result<(), Error> {
     let repository = SampleRepository { pool };
     let service = &SampleService { repository };
 
-    run(service_fn(move |event: Request| async move {
-        handler(service, event).await
-    }))
-    .await
+    run(service_fn(|request| handler(service, request))).await
 }

@@ -12,29 +12,29 @@ use model::{error::required_body, validation::validate};
 use sample::{model::SampleRequest, repository::SampleRepository, service::SampleService};
 use storage::secret::secret_client;
 
-async fn handler(service: &SampleService, event: Request) -> Result<Response<Body>, Error> {
-    let user_id = match get_user_id(&event) {
+async fn handler(service: &SampleService, request: Request) -> Result<Response<Body>, Error> {
+    let user_id = match get_user_id(&request) {
         Ok(user_id) => user_id,
-        Err(error) => return error_response(error),
+        Err(error) => return error_response(request, error),
     };
-    let id = match path_param::<i64>(&event, "id") {
+    let id = match path_param::<i64>(&request, "id") {
         Ok(id) => id,
-        Err(error) => return error_response(error),
+        Err(error) => return error_response(request, error),
     };
-    let version = query_version(&event);
-    let sample = match event.payload::<SampleRequest>()? {
+    let version = query_version(&request);
+    let sample = match request.payload::<SampleRequest>()? {
         Some(value) => value,
-        None => return error_response(required_body()),
+        None => return error_response(request, required_body()),
     };
 
     match validate(&sample) {
         Ok(_) => (),
-        Err(error) => return error_response(error),
+        Err(error) => return error_response(request, error),
     }
 
     let result = service.update(id, sample, version, user_id).await;
 
-    json_response(201, result)
+    json_response(request, 201, result)
 }
 
 #[tokio::main]
@@ -46,8 +46,5 @@ async fn main() -> Result<(), Error> {
     let repository = SampleRepository { pool };
     let service = &SampleService { repository };
 
-    run(service_fn(move |event: Request| async move {
-        handler(service, event).await
-    }))
-    .await
+    run(service_fn(|request| handler(service, request))).await
 }

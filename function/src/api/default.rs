@@ -3,10 +3,10 @@ use lambda_http::{run, Body, Error, Request, Response};
 use lambda_runtime::service_fn;
 use model::error::path_not_found;
 
-async fn handler(_: Request) -> Result<Response<Body>, Error> {
+async fn handler(request: Request) -> Result<Response<Body>, Error> {
     let result = path_not_found();
 
-    error_response(result)
+    error_response(request, result)
 }
 
 #[tokio::main]

@@ -10,15 +10,15 @@ use lambda_runtime::service_fn;
 use sample::{repository::SampleRepository, service::SampleService};
 use storage::secret::secret_client;
 
-async fn handler(service: &SampleService, event: Request) -> Result<Response<Body>, Error> {
-    let id = match path_param::<i64>(&event, "id") {
+async fn handler(service: &SampleService, request: Request) -> Result<Response<Body>, Error> {
+    let id = match path_param::<i64>(&request, "id") {
         Ok(id) => id,
-        Err(error) => return error_response(error),
+        Err(error) => return error_response(request, error),
     };
-    let language = get_language(&event);
+    let language = get_language(&request);
     let result = service.get(id, true, &language).await;
 
-    json_response(200, result)
+    json_response(request, 200, result)
 }
 
 #[tokio::main]
@@ -30,8 +30,5 @@ async fn main() -> Result<(), Error> {
     let repository = SampleRepository { pool };
     let service = &SampleService { repository };
 
-    run(service_fn(move |event: Request| async move {
-        handler(service, event).await
-    }))
-    .await
+    run(service_fn(|request| handler(service, request))).await
 }
