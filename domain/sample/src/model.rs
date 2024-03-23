@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_trim::{option_string_trim, string_trim};
 use serde_with::skip_serializing_none;
 use sqlx::prelude::FromRow;
-use time::OffsetDateTime;
+use time::{serde::rfc3339, OffsetDateTime};
 use validator::Validate;
 
 pub struct SampleSeekFilter {
@@ -20,7 +20,7 @@ pub struct SampleList {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     pub amount: i32,
-    #[serde(with = "time::serde::rfc3339")]
+    #[serde(with = "rfc3339")]
     pub created_at: OffsetDateTime,
 }
 
@@ -94,6 +94,6 @@ pub struct SampleDetail {
     pub version: i16,
     #[sqlx(skip)]
     pub translations: Option<Vec<SampleTranslation>>,
-    #[serde(with = "time::serde::rfc3339")]
+    #[serde(with = "rfc3339")]
     pub created_at: OffsetDateTime,
 }
