@@ -1,4 +1,4 @@
-use lambda::{json::error_response, tracing::enable_tracing};
+use lambda::{json::error_response, tracing::init_tracing};
 use lambda_http::{run, Body, Error, Request, Response};
 use lambda_runtime::service_fn;
 use model::error::path_not_found;
@@ -11,7 +11,7 @@ async fn handler(_: Request) -> Result<Response<Body>, Error> {
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    enable_tracing();
+    init_tracing();
 
     run(service_fn(handler)).await
 }

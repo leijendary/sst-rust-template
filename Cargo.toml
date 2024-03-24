@@ -3,12 +3,11 @@ package.edition = "2021"
 package.version = "0.0.1"
 resolver = "2"
 members = [
-    "function",
     "domain/sample",
+    "function",
     "lib/database",
     "lib/model",
     "lib/lambda",
-    "lib/storage",
 ]
 
 [workspace.dependencies]

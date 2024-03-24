@@ -1,15 +1,13 @@
-use database::postgres::connect_postgres;
 use lambda::{
     context::get_user_id,
     json::{error_response, json_response},
     path::path_param,
     query::query_version,
-    tracing::enable_tracing,
+    tracing::init_tracing,
 };
 use lambda_http::{run, Body, Error, Request, Response};
 use lambda_runtime::service_fn;
-use sample::{repository::SampleRepository, service::SampleService};
-use storage::secret::secret_client;
+use sample::service::SampleService;
 
 async fn handler(service: &SampleService, request: Request) -> Result<Response<Body>, Error> {
     let user_id = match get_user_id(&request) {
@@ -28,12 +26,9 @@ async fn handler(service: &SampleService, request: Request) -> Result<Response<B
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    enable_tracing();
+    init_tracing();
 
-    let secret_client = secret_client().await;
-    let db = connect_postgres(&secret_client).await;
-    let repository = SampleRepository { db };
-    let service = &SampleService { repository };
+    let service = &SampleService::default().await;
 
     run(service_fn(|request| handler(service, request))).await
 }

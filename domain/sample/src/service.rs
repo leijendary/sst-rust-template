@@ -17,6 +17,12 @@ pub struct SampleService {
 }
 
 impl SampleService {
+    pub async fn default() -> Self {
+        let repository = SampleRepository::default().await;
+
+        SampleService { repository }
+    }
+
     pub async fn seek(
         &self,
         filter: &SampleSeekFilter,

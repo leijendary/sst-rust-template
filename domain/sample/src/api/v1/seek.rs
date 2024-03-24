@@ -1,13 +1,11 @@
-use database::postgres::connect_postgres;
 use lambda::{
     header::get_language, json::json_response, query::query_param, seek::ApiSeekRequest,
-    tracing::enable_tracing,
+    tracing::init_tracing,
 };
 use lambda_http::{run, Body, Error, Request, Response};
 use lambda_runtime::service_fn;
 use model::seek::SeekRequest;
-use sample::{model::SampleSeekFilter, repository::SampleRepository, service::SampleService};
-use storage::secret::secret_client;
+use sample::{model::SampleSeekFilter, service::SampleService};
 
 async fn handler(service: &SampleService, request: Request) -> Result<Response<Body>, Error> {
     let language = get_language(&request);
@@ -21,12 +19,9 @@ async fn handler(service: &SampleService, request: Request) -> Result<Response<B
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    enable_tracing();
+    init_tracing();
 
-    let secret_client = secret_client().await;
-    let db = connect_postgres(&secret_client).await;
-    let repository = SampleRepository { db };
-    let service = &SampleService { repository };
+    let service = &SampleService::default().await;
 
     run(service_fn(|request| handler(service, request))).await
 }

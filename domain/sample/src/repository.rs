@@ -1,4 +1,9 @@
-use database::error_parser::{database_error, resource_error};
+use aws_config::{load_defaults, BehaviorVersion};
+use aws_sdk_secretsmanager::Client;
+use database::{
+    error_parser::{database_error, resource_error},
+    postgres::connect_postgres,
+};
 use model::{
     error::{version_conflict, ErrorResult},
     page::PageRequest,
@@ -23,6 +28,14 @@ pub struct SampleRepository {
 }
 
 impl SampleRepository {
+    pub async fn default() -> Self {
+        let config = load_defaults(BehaviorVersion::latest()).await;
+        let secret_client = Client::new(&config);
+        let db = connect_postgres(&secret_client).await;
+
+        SampleRepository { db }
+    }
+
     /// Seek / keyset pagination.
     /// This is a more optimized way to do pagination compared to limit-offset pagination.
     /// The way this works is that this will use indices to get the first n results and
