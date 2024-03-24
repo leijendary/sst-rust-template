@@ -33,7 +33,7 @@ impl SampleRepository {
         let secret_client = Client::new(&config);
         let db = connect_postgres(&secret_client).await;
 
-        SampleRepository { db }
+        Self { db }
     }
 
     /// Seek / keyset pagination.

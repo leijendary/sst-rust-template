@@ -16,7 +16,7 @@ pub struct Page<T> {
 
 impl<T> Page<T> {
     pub fn new(data: Vec<T>, count: i64, page_request: &PageRequest) -> Self {
-        Page {
+        Self {
             data,
             page: page_request.page,
             size: page_request.size,

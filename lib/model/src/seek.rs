@@ -38,7 +38,7 @@ impl<T: Seekable> Seek<T> {
             (None, None)
         };
 
-        Seek {
+        Self {
             data,
             size: seek_request.size,
             created_at,

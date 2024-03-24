@@ -20,7 +20,7 @@ impl SampleService {
     pub async fn default() -> Self {
         let repository = SampleRepository::default().await;
 
-        SampleService { repository }
+        Self { repository }
     }
 
     pub async fn seek(
