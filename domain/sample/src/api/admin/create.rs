@@ -34,9 +34,9 @@ async fn handler(service: &SampleService, request: Request) -> Result<Response<B
 async fn main() -> Result<(), Error> {
     enable_tracing();
 
-    let client = secret_client().await;
-    let pool = connect_postgres(&client).await;
-    let repository = SampleRepository { pool };
+    let secret_client = secret_client().await;
+    let db = connect_postgres(&secret_client).await;
+    let repository = SampleRepository { db };
     let service = &SampleService { repository };
 
     run(service_fn(|request| handler(service, request))).await

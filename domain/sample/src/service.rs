@@ -45,7 +45,7 @@ impl SampleService {
         request: SampleRequest,
         user_id: String,
     ) -> Result<SampleDetail, ErrorResult> {
-        let mut tx = begin(&self.repository.pool).await?;
+        let mut tx = begin(&self.repository.db).await?;
         let mut sample = self.repository.create(&mut tx, &request, user_id).await?;
         sample.translations = self
             .repository
@@ -86,7 +86,7 @@ impl SampleService {
         version: i16,
         user_id: String,
     ) -> Result<SampleDetail, ErrorResult> {
-        let mut tx = begin(&self.repository.pool).await?;
+        let mut tx = begin(&self.repository.db).await?;
         let mut sample = self
             .repository
             .update(&mut tx, id, &request, version, user_id)

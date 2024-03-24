@@ -19,7 +19,7 @@ struct TranslationsBinds {
 }
 
 pub struct SampleRepository {
-    pub pool: PgPool,
+    pub db: PgPool,
 }
 
 impl SampleRepository {
@@ -40,7 +40,7 @@ impl SampleRepository {
             .bind(seek_request.limit)
             .bind(seek_request.created_at)
             .bind(seek_request.id)
-            .fetch_all(&self.pool)
+            .fetch_all(&self.db)
             .await
             .map_err(database_error)
     }
@@ -56,7 +56,7 @@ impl SampleRepository {
             .bind(query)
             .bind(page_request.size)
             .bind(page_request.offset)
-            .fetch_all(&self.pool)
+            .fetch_all(&self.db)
             .await
             .map_err(database_error)
     }
@@ -66,7 +66,7 @@ impl SampleRepository {
 
         query_as(SQL)
             .bind(query)
-            .fetch_one(&self.pool)
+            .fetch_one(&self.db)
             .await
             .map(|result: (i64,)| result.0)
             .map_err(database_error)
@@ -103,7 +103,7 @@ impl SampleRepository {
             .bind(id)
             .bind(translate)
             .bind(language)
-            .fetch_one(&self.pool)
+            .fetch_one(&self.db)
             .await
             .map_err(|error| resource_error(ENTITY, id, None, error))
     }
@@ -136,7 +136,7 @@ impl SampleRepository {
             .bind(id)
             .bind(version)
             .bind(user_id)
-            .execute(&self.pool)
+            .execute(&self.db)
             .await
             .map_err(|error| resource_error(ENTITY, id, Some(version), error))?;
 
@@ -152,7 +152,7 @@ impl SampleRepository {
 
         query_as::<_, SampleTranslation>(SQL)
             .bind(id)
-            .fetch_all(&self.pool)
+            .fetch_all(&self.db)
             .await
             .map_err(database_error)
     }
