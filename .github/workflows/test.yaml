@@ -28,8 +28,14 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
+      - name: Install cargo-audit
+        run: cargo install cargo-audit
       - name: Execute cargo test
         run: cargo test
+      - name: Execute cargo clippy
+        run: cargo clippy -- -D warnings
+      - name: Execute cargo audit
+        run: cargo audit
   infra:
     name: Infra
     runs-on: ubuntu-latest
