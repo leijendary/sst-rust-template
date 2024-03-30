@@ -8,10 +8,7 @@ use crate::translation::Translation;
 use serde_json::Value;
 use validator::{Validate, ValidationError, ValidationErrors, ValidationErrorsKind};
 
-pub fn validate<T>(value: T) -> Result<T, ErrorResult>
-where
-    T: Validate,
-{
+pub fn validate<T: Validate>(value: T) -> Result<T, ErrorResult> {
     value.validate().map_err(|errors| ErrorResult {
         status: 400,
         errors: map_validation_error(&errors),
@@ -20,10 +17,7 @@ where
     Ok(value)
 }
 
-pub fn validate_unique_translation<T>(value: &[T]) -> Result<(), ValidationError>
-where
-    T: Translation,
-{
+pub fn validate_unique_translation<T: Translation>(value: &[T]) -> Result<(), ValidationError> {
     let mut languages: HashSet<String> = HashSet::new();
     let mut ordinals: HashSet<i16> = HashSet::new();
 
