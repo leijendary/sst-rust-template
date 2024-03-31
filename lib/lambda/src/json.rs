@@ -7,17 +7,16 @@ pub fn json_response<T: Serialize>(
     status: u16,
     result: Result<T, ErrorResult>,
 ) -> Result<Response<Body>, Error> {
-    match result.and_then(|value| to_json(&value, "json_response")) {
-        Ok(json) => build_response(status, json),
-        Err(error) => error_response(error),
-    }
+    result
+        .and_then(|value| to_json(&value, "json_response"))
+        .map(|json| build_response(status, json))
+        .unwrap_or_else(error_response)
 }
 
 pub fn error_response(result: ErrorResult) -> Result<Response<Body>, Error> {
-    match to_json(&result, "error_response") {
-        Ok(json) => build_response(result.status, json),
-        Err(error) => error_response(error),
-    }
+    to_json(&result, "error_response")
+        .map(|json| build_response(result.status, json))
+        .unwrap_or_else(error_response)
 }
 
 fn to_json<T: Serialize>(value: &T, target: &str) -> Result<String, ErrorResult> {

@@ -15,13 +15,8 @@ impl ApiSeekRequest for SeekRequest {
         let size = query_param(request, "size")
             .unwrap_or(SIZE_DEFAULT)
             .max(SIZE_MIN);
-        let created_at = match query_param::<String>(request, "createdAt") {
-            Some(value) => match OffsetDateTime::parse(&value, &Rfc3339) {
-                Ok(value) => Some(value),
-                Err(_) => None,
-            },
-            None => None,
-        };
+        let created_at = query_param::<String>(request, "createdAt")
+            .and_then(|value| OffsetDateTime::parse(&value, &Rfc3339).ok());
         let id = query_param(request, "id");
 
         SeekRequest {
