@@ -1,9 +1,10 @@
 -- Table: sample
 create table sample (
-    id bigint generated always as identity (start 100000) primary key,
+    id bigint generated always as identity primary key,
     name character varying(100) not null,
     description text,
-    amount integer not null,
+    -- Last 2 digits are decimals.
+    amount bigint not null,
     version smallint not null default 0,
     created_at timestamp with time zone not null default now(),
     created_by text not null,
@@ -12,6 +13,9 @@ create table sample (
     deleted_at timestamp with time zone,
     deleted_by text
 );
+
+-- Set random initial value for sample_id_seq.
+select setval('sample_id_seq', (select floor(random() * 100000 + 99999)::bigint));
 
 -- Unique constraint: sample.name
 create unique index sample_name_key on sample(lower(name::text)) where deleted_at is null;
