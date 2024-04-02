@@ -22,6 +22,8 @@ serde_trim = { workspace = true }
 time = { workspace = true }
 validator = { workspace = true }
 sqlx = { workspace = true }
+rust_decimal = { workspace = true }
+rust_decimal_macros = { workspace = true }
 
 # Admin APIs
 [[bin]]

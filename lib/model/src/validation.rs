@@ -5,21 +5,41 @@ use std::{
 
 use crate::error::{ErrorDetail, ErrorResult, ErrorSource};
 use crate::translation::Translation;
+use rust_decimal::Decimal;
 use serde_json::Value;
 use validator::{Validate, ValidationError, ValidationErrors, ValidationErrorsKind};
 
-pub fn validate<T: Validate>(value: T) -> Result<T, ErrorResult> {
+pub fn validate<T: Validate>(value: T) -> Result<(), ErrorResult> {
     value.validate().map_err(|errors| ErrorResult {
         status: 400,
         errors: map_validation_error(&errors),
-    })?;
+    })
+}
 
-    Ok(value)
+pub fn validate_decimal_range(
+    value: &Decimal,
+    min: Decimal,
+    max: Decimal,
+) -> Result<(), ValidationError> {
+    if value >= &min && value <= &max {
+        return Ok(());
+    }
+
+    let error = ValidationError {
+        code: Cow::from("range"),
+        message: None,
+        params: HashMap::from([
+            (Cow::from("min"), Value::from(min.to_string())),
+            (Cow::from("max"), Value::from(max.to_string())),
+        ]),
+    };
+
+    Err(error)
 }
 
 pub fn validate_unique_translation<T: Translation>(value: &[T]) -> Result<(), ValidationError> {
-    let mut languages: HashSet<String> = HashSet::new();
-    let mut ordinals: HashSet<i16> = HashSet::new();
+    let mut languages = HashSet::<String>::new();
+    let mut ordinals = HashSet::<i16>::new();
 
     for (i, value) in value.iter().enumerate() {
         let key = if !languages.insert(value.language()) {

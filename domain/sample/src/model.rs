@@ -1,11 +1,16 @@
 use model::seek::Seekable;
-use model::{translation::Translation, validation::validate_unique_translation};
+use model::{
+    translation::Translation, validation::validate_decimal_range,
+    validation::validate_unique_translation,
+};
+use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 use serde_trim::{option_string_trim, string_trim};
 use serde_with::skip_serializing_none;
 use sqlx::prelude::FromRow;
+use sqlx::types::Decimal;
 use time::{serde::rfc3339, OffsetDateTime};
-use validator::Validate;
+use validator::{Validate, ValidationError};
 
 pub struct SampleSeekFilter {
     pub language: Option<String>,
@@ -19,7 +24,7 @@ pub struct SampleList {
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
-    pub amount: i32,
+    pub amount: Decimal,
     #[serde(with = "rfc3339")]
     pub created_at: OffsetDateTime,
 }
@@ -42,9 +47,8 @@ pub struct SampleRequest {
     #[serde(default, deserialize_with = "option_string_trim")]
     pub description: Option<String>,
     #[serde(default)]
-    // Last 2 digits are decimals
-    #[validate(range(min = 1, max = 99999999))]
-    pub amount: i32,
+    #[validate(custom(function = "validate_amount"))]
+    pub amount: Decimal,
     #[serde(default)]
     #[validate(
         length(min = 1, max = 100),
@@ -69,6 +73,7 @@ pub struct SampleTranslation {
     #[serde(default, deserialize_with = "string_trim")]
     #[validate(length(min = 2, max = 4))]
     pub language: String,
+    #[serde(default)]
     #[validate(range(min = 1, max = 100))]
     pub ordinal: i16,
 }
@@ -79,7 +84,7 @@ impl Translation for SampleTranslation {
     }
 
     fn ordinal(&self) -> i16 {
-        self.ordinal.to_owned()
+        self.ordinal
     }
 }
 
@@ -90,10 +95,14 @@ pub struct SampleDetail {
     pub id: i64,
     pub name: String,
     pub description: Option<String>,
-    pub amount: i32,
+    pub amount: Decimal,
     pub version: i16,
     #[sqlx(skip)]
     pub translations: Option<Vec<SampleTranslation>>,
     #[serde(with = "rfc3339")]
     pub created_at: OffsetDateTime,
+}
+
+fn validate_amount(amount: &Decimal) -> Result<(), ValidationError> {
+    validate_decimal_range(amount, dec!(0.01), dec!(999999999.99))
 }

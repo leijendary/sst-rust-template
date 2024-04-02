@@ -9,3 +9,5 @@ serde_json = { workspace = true }
 serde_with = { workspace = true }
 time = { workspace = true }
 validator = { workspace = true }
+rust_decimal = { workspace = true }
+rust_decimal_macros = { workspace = true }

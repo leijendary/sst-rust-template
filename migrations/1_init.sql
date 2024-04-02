@@ -3,8 +3,7 @@ create table sample (
     id bigint generated always as identity primary key,
     name character varying(100) not null,
     description text,
-    -- Last 2 digits are decimals.
-    amount bigint not null,
+    amount numeric(12, 2) not null,
     version smallint not null default 0,
     created_at timestamp with time zone not null default now(),
     created_by text not null,
