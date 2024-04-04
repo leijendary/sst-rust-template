@@ -14,7 +14,7 @@ create table sample (
 );
 
 -- Set random initial value for sample_id_seq.
-select setval('sample_id_seq', (select floor(random() * 100000 + 99999)::bigint));
+select setval('sample_id_seq', (select floor(random() * 19999 + 110000)::bigint));
 
 -- Unique constraint: sample.name
 create unique index sample_name_key on sample(lower(name::text)) where deleted_at is null;
