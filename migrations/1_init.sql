@@ -2,7 +2,7 @@
 create table sample (
     id bigint generated always as identity primary key,
     name character varying(100) not null,
-    description text,
+    description character varying(2000),
     amount numeric(12,2) not null,
     version smallint not null default 0,
     created_at timestamp with time zone not null default now(),

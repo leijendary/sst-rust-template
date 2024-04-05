@@ -45,6 +45,7 @@ pub struct SampleRequest {
     #[validate(length(min = 1, max = 100))]
     pub name: String,
     #[serde(default, deserialize_with = "option_string_trim")]
+    #[validate(length(max = 2000))]
     pub description: Option<String>,
     #[serde(default)]
     #[validate(custom(function = "validate_amount"))]
