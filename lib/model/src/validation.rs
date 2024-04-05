@@ -9,10 +9,10 @@ use rust_decimal::Decimal;
 use serde_json::Value;
 use validator::{Validate, ValidationError, ValidationErrors, ValidationErrorsKind};
 
-pub fn validate<T: Validate>(value: T) -> Result<(), ErrorResult> {
+pub fn validate<T: Validate>(value: &T) -> Result<(), ErrorResult> {
     value.validate().map_err(|errors| ErrorResult {
         status: 400,
-        errors: map_validation_error(&errors),
+        errors: map_validation_error(errors),
     })
 }
 
@@ -69,7 +69,7 @@ pub fn validate_unique_translation<T: Translation>(value: &[T]) -> Result<(), Va
     Ok(())
 }
 
-fn map_validation_error(errors: &ValidationErrors) -> Vec<ErrorDetail> {
+fn map_validation_error(errors: ValidationErrors) -> Vec<ErrorDetail> {
     errors
         .errors()
         .iter()

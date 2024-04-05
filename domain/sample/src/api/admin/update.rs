@@ -25,9 +25,8 @@ async fn handler(service: &SampleService, request: Request) -> Result<Response<B
         None => return error_response(required_body()),
     };
 
-    match validate(&sample) {
-        Ok(_) => (),
-        Err(error) => return error_response(error),
+    if let Err(error) = validate(&sample) {
+        return error_response(error);
     }
 
     let result = service.update(id, sample, version, user_id).await;

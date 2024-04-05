@@ -105,5 +105,8 @@ pub struct SampleDetail {
 }
 
 fn validate_amount(amount: &Decimal) -> Result<(), ValidationError> {
-    validate_decimal_range(amount, dec!(0.01), dec!(999999999.99))
+    static MIN: Decimal = dec!(0.01);
+    static MAX: Decimal = dec!(999999999.99);
+
+    validate_decimal_range(amount, MIN, MAX)
 }
