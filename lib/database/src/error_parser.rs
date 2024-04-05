@@ -7,9 +7,7 @@ use regex::Regex;
 use sqlx::{
     error::{
         DatabaseError,
-        ErrorKind::{
-            CheckViolation, ForeignKeyViolation, NotNullViolation, Other, UniqueViolation,
-        },
+        ErrorKind::{CheckViolation, ForeignKeyViolation, NotNullViolation, UniqueViolation},
     },
     postgres::PgDatabaseError,
     Error,
@@ -49,14 +47,11 @@ pub fn database_error(err: Error) -> ErrorResult {
 }
 
 fn parse_detail(err: &PgDatabaseError) -> (u16, ErrorDetail) {
-    error!(target: "database_error", "Failed to execute a database query {:?}", err);
-
     let (status, code, pointer) = match err.kind() {
         UniqueViolation => unique_violation(err),
         ForeignKeyViolation => foreign_key_violation(err),
         NotNullViolation => not_null_violation(err),
         CheckViolation => check_violation(err),
-        Other => other_violation(err),
         _ => other_violation(err),
     };
     let error = ErrorDetail {
