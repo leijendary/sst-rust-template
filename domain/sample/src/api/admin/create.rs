@@ -13,9 +13,8 @@ async fn handler(service: &SampleService, request: Request) -> Result<Response<B
         Ok(user_id) => user_id,
         Err(error) => return error_response(error),
     };
-    let sample = match request.payload::<SampleRequest>()? {
-        Some(value) => value,
-        None => return error_response(required_body()),
+    let Some(sample) = request.payload::<SampleRequest>()? else {
+        return error_response(required_body());
     };
 
     if let Err(error) = validate(&sample) {

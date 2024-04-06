@@ -19,11 +19,10 @@ async fn handler(service: &SampleService, request: Request) -> Result<Response<B
         Ok(id) => id,
         Err(error) => return error_response(error),
     };
-    let version = query_version(&request);
-    let sample = match request.payload::<SampleRequest>()? {
-        Some(value) => value,
-        None => return error_response(required_body()),
+    let Some(sample) = request.payload::<SampleRequest>()? else {
+        return error_response(required_body());
     };
+    let version = query_version(&request);
 
     if let Err(error) = validate(&sample) {
         return error_response(error);

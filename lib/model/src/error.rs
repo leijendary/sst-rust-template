@@ -4,14 +4,14 @@ use serde::Serialize;
 use serde_json::Value;
 use serde_with::skip_serializing_none;
 
-#[derive(Serialize)]
+#[derive(Debug, Serialize)]
 pub struct ErrorResult {
     pub status: u16,
     pub errors: Vec<ErrorDetail>,
 }
 
 #[skip_serializing_none]
-#[derive(Serialize)]
+#[derive(Debug, Serialize)]
 pub struct ErrorDetail {
     pub id: Option<Value>,
     pub code: String,
@@ -19,7 +19,7 @@ pub struct ErrorDetail {
 }
 
 #[skip_serializing_none]
-#[derive(Serialize)]
+#[derive(Debug, Serialize)]
 pub struct ErrorSource {
     pub pointer: Option<String>,
     pub parameter: Option<String>,
