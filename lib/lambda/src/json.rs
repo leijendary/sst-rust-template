@@ -16,13 +16,13 @@ where
     }
 }
 
-pub fn json_response<T: Serialize>(status: u16, value: T) -> Result<Response<Body>, Error> {
+fn json_response<T: Serialize>(status: u16, value: T) -> Result<Response<Body>, Error> {
     to_json(&value, "json_response")
         .map(|json| build_response(status, json))
         .unwrap_or_else(error_response)
 }
 
-pub fn error_response(result: ErrorResult) -> Result<Response<Body>, Error> {
+fn error_response(result: ErrorResult) -> Result<Response<Body>, Error> {
     to_json(&result, "error_response")
         .map(|json| build_response(result.status, json))
         .unwrap_or_else(error_response)

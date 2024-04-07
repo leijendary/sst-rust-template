@@ -10,13 +10,12 @@ use serde_json::Value;
 use validator::{Validate, ValidationError, ValidationErrors, ValidationErrorsKind};
 
 pub fn validate<T: Validate>(value: T) -> Result<T, ErrorResult> {
-    value
-        .validate()
-        .map(|()| value)
-        .map_err(|errors| ErrorResult {
-            status: 400,
-            errors: map_validation_error(errors),
-        })
+    value.validate().map_err(|errors| ErrorResult {
+        status: 400,
+        errors: map_validation_error(errors),
+    })?;
+
+    Ok(value)
 }
 
 pub fn validate_decimal_range(
