@@ -9,11 +9,14 @@ use rust_decimal::Decimal;
 use serde_json::Value;
 use validator::{Validate, ValidationError, ValidationErrors, ValidationErrorsKind};
 
-pub fn validate<T: Validate>(value: &T) -> Result<(), ErrorResult> {
-    value.validate().map_err(|errors| ErrorResult {
-        status: 400,
-        errors: map_validation_error(errors),
-    })
+pub fn validate<T: Validate>(value: T) -> Result<T, ErrorResult> {
+    value
+        .validate()
+        .map(|()| value)
+        .map_err(|errors| ErrorResult {
+            status: 400,
+            errors: map_validation_error(errors),
+        })
 }
 
 pub fn validate_decimal_range(

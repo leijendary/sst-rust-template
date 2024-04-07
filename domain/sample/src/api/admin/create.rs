@@ -1,29 +1,25 @@
 use lambda::{
-    context::get_user_id,
-    json::{error_response, json_response},
-    tracing::init_tracing,
+    context::get_user_id, json::json_handler, request::RequestPayloadParser, tracing::init_tracing,
 };
-use lambda_http::{run, Body, Error, Request, RequestPayloadExt, Response};
+use lambda_http::{run, Error, Request};
 use lambda_runtime::service_fn;
-use model::{error::required_body, validation::validate};
-use sample::{model::SampleRequest, service::SampleService};
+use model::{error::ErrorResult, validation::validate};
+use sample::{
+    model::{SampleDetail, SampleRequest},
+    service::SampleService,
+};
 
-async fn handler(service: &SampleService, request: Request) -> Result<Response<Body>, Error> {
-    let user_id = match get_user_id(&request) {
-        Ok(user_id) => user_id,
-        Err(error) => return error_response(error),
-    };
-    let Some(sample) = request.payload::<SampleRequest>()? else {
-        return error_response(required_body());
-    };
+async fn handler(
+    service: &SampleService,
+    request: Request,
+) -> Result<(u16, SampleDetail), ErrorResult> {
+    let user_id = get_user_id(&request)?;
+    let sample = request
+        .parse_payload::<SampleRequest>()
+        .and_then(validate)?;
+    let result = service.create(sample, user_id).await?;
 
-    if let Err(error) = validate(&sample) {
-        return error_response(error);
-    }
-
-    let result = service.create(sample, user_id).await;
-
-    json_response(201, result)
+    Ok((201, result))
 }
 
 #[tokio::main]
@@ -32,5 +28,8 @@ async fn main() -> Result<(), Error> {
 
     let service = &SampleService::default().await;
 
-    run(service_fn(|request| handler(service, request))).await
+    run(service_fn(|request| {
+        json_handler(handler(service, request))
+    }))
+    .await
 }

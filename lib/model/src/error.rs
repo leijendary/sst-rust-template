@@ -158,6 +158,7 @@ pub fn version_conflict(entity: &str, id: i64, version: i16) -> ErrorResult {
 
 pub fn path_not_found() -> ErrorResult {
     let error = ErrorDetail {
+        id: None,
         code: "not_found".to_owned(),
         source: ErrorSource {
             pointer: Some("/path".to_owned()),
@@ -165,11 +166,28 @@ pub fn path_not_found() -> ErrorResult {
             header: None,
             meta: None,
         },
-        id: None,
     };
 
     ErrorResult {
         status: 404,
+        errors: vec![error],
+    }
+}
+
+pub fn invalid_body() -> ErrorResult {
+    let error = ErrorDetail {
+        id: None,
+        code: "invalid".to_owned(),
+        source: ErrorSource {
+            pointer: Some("/body".to_owned()),
+            header: None,
+            parameter: None,
+            meta: None,
+        },
+    };
+
+    ErrorResult {
+        status: 400,
         errors: vec![error],
     }
 }

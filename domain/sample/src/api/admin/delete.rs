@@ -1,27 +1,20 @@
 use lambda::{
-    context::get_user_id,
-    json::{error_response, json_response},
-    path::path_param,
-    query::query_version,
+    context::get_user_id, json::json_handler, path::path_param, query::query_version,
     tracing::init_tracing,
 };
-use lambda_http::{run, Body, Error, Request, Response};
+use lambda_http::{run, Error, Request};
 use lambda_runtime::service_fn;
+use model::error::ErrorResult;
 use sample::service::SampleService;
 
-async fn handler(service: &SampleService, request: Request) -> Result<Response<Body>, Error> {
-    let user_id = match get_user_id(&request) {
-        Ok(user_id) => user_id,
-        Err(error) => return error_response(error),
-    };
-    let id = match path_param::<i64>(&request, "id") {
-        Ok(id) => id,
-        Err(error) => return error_response(error),
-    };
+async fn handler(service: &SampleService, request: Request) -> Result<(u16, ()), ErrorResult> {
+    let user_id = get_user_id(&request)?;
+    let id = path_param::<i64>(&request, "id")?;
     let version = query_version(&request);
-    let result = service.delete(id, version, user_id).await;
 
-    json_response(204, result)
+    service.delete(id, version, user_id).await?;
+
+    Ok((204, ()))
 }
 
 #[tokio::main]
@@ -30,5 +23,8 @@ async fn main() -> Result<(), Error> {
 
     let service = &SampleService::default().await;
 
-    run(service_fn(|request| handler(service, request))).await
+    run(service_fn(|request| {
+        json_handler(handler(service, request))
+    }))
+    .await
 }

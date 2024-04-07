@@ -1,14 +1,23 @@
+use std::future::Future;
+
 use lambda_http::{http::header::CONTENT_TYPE, Body, Error, Response};
 use model::error::{internal_server, ErrorResult};
 use serde::Serialize;
 use tracing::error;
 
-pub fn json_response<T: Serialize>(
-    status: u16,
-    result: Result<T, ErrorResult>,
-) -> Result<Response<Body>, Error> {
-    result
-        .and_then(|value| to_json(&value, "json_response"))
+pub async fn json_handler<T, F>(handler: F) -> Result<Response<Body>, Error>
+where
+    T: Serialize,
+    F: Future<Output = Result<(u16, T), ErrorResult>>,
+{
+    match handler.await {
+        Ok((status, value)) => json_response(status, value),
+        Err(error) => error_response(error),
+    }
+}
+
+pub fn json_response<T: Serialize>(status: u16, value: T) -> Result<Response<Body>, Error> {
+    to_json(&value, "json_response")
         .map(|json| build_response(status, json))
         .unwrap_or_else(error_response)
 }
