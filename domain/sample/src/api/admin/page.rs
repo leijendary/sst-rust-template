@@ -1,4 +1,6 @@
-use lambda::{json::json_handler, page::ApiPageRequest, query::query_param, tracing::init_tracing};
+use lambda::{
+    json::json_handler, page::ApiPageRequest, request::RequestExtension, tracing::init_tracing,
+};
 use lambda_http::{run, Error, Request};
 use lambda_runtime::service_fn;
 use model::{
@@ -11,7 +13,7 @@ async fn handler(
     service: &SampleService,
     request: Request,
 ) -> Result<(u16, Page<SampleList>), ErrorResult> {
-    let query = query_param(&request, "query");
+    let query = request.query_param("query");
     let page_request = PageRequest::read(&request);
     let result = service.page(&query, &page_request).await?;
 

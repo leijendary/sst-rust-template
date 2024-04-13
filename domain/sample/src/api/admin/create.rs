@@ -1,9 +1,7 @@
-use lambda::{
-    context::get_user_id, json::json_handler, request::RequestPayloadParser, tracing::init_tracing,
-};
+use lambda::{json::json_handler, request::RequestExtension, tracing::init_tracing};
 use lambda_http::{run, Error, Request};
 use lambda_runtime::service_fn;
-use model::{error::ErrorResult, validation::validate};
+use model::error::ErrorResult;
 use sample::{
     model::{SampleDetail, SampleRequest},
     service::SampleService,
@@ -13,10 +11,8 @@ async fn handler(
     service: &SampleService,
     request: Request,
 ) -> Result<(u16, SampleDetail), ErrorResult> {
-    let user_id = get_user_id(&request)?;
-    let sample = request
-        .parse_payload::<SampleRequest>()
-        .and_then(validate)?;
+    let user_id = request.get_user_id()?;
+    let sample = request.validate_payload::<SampleRequest>()?;
     let result = service.create(sample, user_id).await?;
 
     Ok((201, result))

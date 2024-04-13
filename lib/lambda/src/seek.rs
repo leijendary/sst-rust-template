@@ -1,4 +1,4 @@
-use crate::query::query_param;
+use crate::request::RequestExtension;
 use lambda_http::Request;
 use model::seek::SeekRequest;
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
@@ -12,12 +12,14 @@ pub trait ApiSeekRequest {
 
 impl ApiSeekRequest for SeekRequest {
     fn read(request: &Request) -> SeekRequest {
-        let size = query_param(request, "size")
+        let size = request
+            .query_param("size")
             .unwrap_or(SIZE_DEFAULT)
             .max(SIZE_MIN);
-        let created_at = query_param::<String>(request, "createdAt")
+        let created_at = request
+            .query_param::<String>("createdAt")
             .and_then(|value| OffsetDateTime::parse(&value, &Rfc3339).ok());
-        let id = query_param(request, "id");
+        let id = request.query_param("id");
 
         SeekRequest {
             size,

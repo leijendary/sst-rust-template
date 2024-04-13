@@ -1,4 +1,4 @@
-use lambda::{header::get_language, json::json_handler, path::path_param, tracing::init_tracing};
+use lambda::{json::json_handler, request::RequestExtension, tracing::init_tracing};
 use lambda_http::{run, Error, Request};
 use lambda_runtime::service_fn;
 use model::error::ErrorResult;
@@ -8,8 +8,8 @@ async fn handler(
     service: &SampleService,
     request: Request,
 ) -> Result<(u16, SampleDetail), ErrorResult> {
-    let id = path_param::<i64>(&request, "id")?;
-    let language = get_language(&request);
+    let id = request.path_param::<i64>("id")?;
+    let language = request.get_language();
     let result = service.get(id, true, &language).await?;
 
     Ok((200, result))

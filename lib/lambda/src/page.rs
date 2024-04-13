@@ -1,7 +1,8 @@
 use model::page::PageRequest;
 
-use crate::query::query_param;
 use lambda_http::Request;
+
+use crate::request::RequestExtension;
 
 const PAGE_DEFAULT: i64 = 1;
 const PAGE_MIN: i64 = 1;
@@ -14,10 +15,12 @@ pub trait ApiPageRequest {
 
 impl ApiPageRequest for PageRequest {
     fn read(request: &Request) -> PageRequest {
-        let page = query_param(request, "page")
+        let page = request
+            .query_param("page")
             .unwrap_or(PAGE_DEFAULT)
             .max(PAGE_MIN);
-        let size = query_param(request, "size")
+        let size = request
+            .query_param("size")
             .unwrap_or(SIZE_DEFAULT)
             .max(SIZE_MIN);
         let offset = ((page - 1) * i64::from(size)).max(0);
