@@ -1,4 +1,4 @@
-import { Tags } from "aws-cdk-lib/core";
+import { RemovalPolicy, Tags } from "aws-cdk-lib/core";
 import path from "path";
 import { SSTConfig } from "sst";
 import { App } from "sst/constructs";
@@ -17,7 +17,7 @@ export default {
   },
   stacks(app) {
     if (app.stage !== "prod") {
-      app.setDefaultRemovalPolicy("destroy");
+      app.setDefaultRemovalPolicy(RemovalPolicy.DESTROY);
     }
 
     resourceTags(app);
