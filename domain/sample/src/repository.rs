@@ -11,17 +11,11 @@ use model::{
 };
 use sqlx::{query, query_as, PgPool, Postgres, Transaction};
 
+use crate::model::SampleTranslationsBinds;
+
 use super::model::{SampleDetail, SampleList, SampleRequest, SampleSeekFilter, SampleTranslation};
 
 static ENTITY: &str = "sample";
-
-struct TranslationsBinds {
-    ids: Vec<i64>,
-    names: Vec<String>,
-    descriptions: Vec<Option<String>>,
-    languages: Vec<String>,
-    ordinals: Vec<i16>,
-}
 
 pub struct SampleRepository {
     pub db: PgPool,
@@ -177,10 +171,10 @@ impl SampleRepository {
         translations: Vec<SampleTranslation>,
     ) -> Result<Vec<SampleTranslation>, ErrorResult> {
         static SQL: &str = include_str!("sql/translations_create.sql");
-        let binds = translations_binds(id, translations);
+        let binds = translations_binds(translations);
 
         query_as::<_, SampleTranslation>(SQL)
-            .bind(binds.ids)
+            .bind(id)
             .bind(binds.names)
             .bind(binds.descriptions)
             .bind(binds.languages)
@@ -197,7 +191,7 @@ impl SampleRepository {
         translations: Vec<SampleTranslation>,
     ) -> Result<Vec<SampleTranslation>, ErrorResult> {
         static SQL_DELETE: &str = include_str!("sql/translations_delete.sql");
-        let binds = translations_binds(id, translations);
+        let binds = translations_binds(translations);
 
         query(SQL_DELETE)
             .bind(id)
@@ -209,7 +203,7 @@ impl SampleRepository {
         static SQL_UPSERT: &str = include_str!("sql/translations_upsert.sql");
 
         query_as::<_, SampleTranslation>(SQL_UPSERT)
-            .bind(binds.ids)
+            .bind(id)
             .bind(binds.names)
             .bind(binds.descriptions)
             .bind(binds.languages)
@@ -220,13 +214,12 @@ impl SampleRepository {
     }
 }
 
-fn translations_binds(id: i64, translations: Vec<SampleTranslation>) -> TranslationsBinds {
+fn translations_binds(translations: Vec<SampleTranslation>) -> SampleTranslationsBinds {
     let len = translations.len();
-    let ids = vec![id; len];
-    let mut names: Vec<String> = Vec::with_capacity(len);
-    let mut descriptions: Vec<Option<String>> = Vec::with_capacity(len);
-    let mut languages: Vec<String> = Vec::with_capacity(len);
-    let mut ordinals: Vec<i16> = Vec::with_capacity(len);
+    let mut names = Vec::<String>::with_capacity(len);
+    let mut descriptions = Vec::<Option<String>>::with_capacity(len);
+    let mut languages = Vec::<String>::with_capacity(len);
+    let mut ordinals = Vec::<i16>::with_capacity(len);
 
     for translation in translations {
         names.push(translation.name);
@@ -235,8 +228,7 @@ fn translations_binds(id: i64, translations: Vec<SampleTranslation>) -> Translat
         ordinals.push(translation.ordinal);
     }
 
-    TranslationsBinds {
-        ids,
+    SampleTranslationsBinds {
         names,
         descriptions,
         languages,

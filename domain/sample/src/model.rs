@@ -104,6 +104,13 @@ pub struct SampleDetail {
     pub created_at: OffsetDateTime,
 }
 
+pub struct SampleTranslationsBinds {
+    pub names: Vec<String>,
+    pub descriptions: Vec<Option<String>>,
+    pub languages: Vec<String>,
+    pub ordinals: Vec<i16>,
+}
+
 fn validate_amount(amount: &Decimal) -> Result<(), ValidationError> {
     static MIN: Decimal = dec!(0.01);
     static MAX: Decimal = dec!(999999999.99);
