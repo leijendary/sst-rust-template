@@ -111,6 +111,30 @@ pub struct SampleTranslationsBinds {
     pub ordinals: Vec<i16>,
 }
 
+impl From<Vec<SampleTranslation>> for SampleTranslationsBinds {
+    fn from(val: Vec<SampleTranslation>) -> Self {
+        let len = val.len();
+        let mut names = Vec::<String>::with_capacity(len);
+        let mut descriptions = Vec::<Option<String>>::with_capacity(len);
+        let mut languages = Vec::<String>::with_capacity(len);
+        let mut ordinals = Vec::<i16>::with_capacity(len);
+
+        for translation in val {
+            names.push(translation.name);
+            descriptions.push(translation.description);
+            languages.push(translation.language);
+            ordinals.push(translation.ordinal);
+        }
+
+        SampleTranslationsBinds {
+            names,
+            descriptions,
+            languages,
+            ordinals,
+        }
+    }
+}
+
 fn validate_amount(amount: &Decimal) -> Result<(), ValidationError> {
     static MIN: Decimal = dec!(0.01);
     static MAX: Decimal = dec!(999999999.99);

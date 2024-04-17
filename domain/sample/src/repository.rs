@@ -171,7 +171,7 @@ impl SampleRepository {
         translations: Vec<SampleTranslation>,
     ) -> Result<Vec<SampleTranslation>, ErrorResult> {
         static SQL: &str = include_str!("sql/translations_create.sql");
-        let binds = translations_binds(translations);
+        let binds = SampleTranslationsBinds::from(translations);
 
         query_as::<_, SampleTranslation>(SQL)
             .bind(id)
@@ -191,7 +191,7 @@ impl SampleRepository {
         translations: Vec<SampleTranslation>,
     ) -> Result<Vec<SampleTranslation>, ErrorResult> {
         static SQL_DELETE: &str = include_str!("sql/translations_delete.sql");
-        let binds = translations_binds(translations);
+        let binds = SampleTranslationsBinds::from(translations);
 
         query(SQL_DELETE)
             .bind(id)
@@ -211,27 +211,5 @@ impl SampleRepository {
             .fetch_all(&mut **tx)
             .await
             .map_err(database_error)
-    }
-}
-
-fn translations_binds(translations: Vec<SampleTranslation>) -> SampleTranslationsBinds {
-    let len = translations.len();
-    let mut names = Vec::<String>::with_capacity(len);
-    let mut descriptions = Vec::<Option<String>>::with_capacity(len);
-    let mut languages = Vec::<String>::with_capacity(len);
-    let mut ordinals = Vec::<i16>::with_capacity(len);
-
-    for translation in translations {
-        names.push(translation.name);
-        descriptions.push(translation.description);
-        languages.push(translation.language);
-        ordinals.push(translation.ordinal);
-    }
-
-    SampleTranslationsBinds {
-        names,
-        descriptions,
-        languages,
-        ordinals,
     }
 }
