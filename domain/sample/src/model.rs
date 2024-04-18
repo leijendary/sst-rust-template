@@ -111,27 +111,29 @@ pub struct SampleTranslationsBinds {
     pub ordinals: Vec<i16>,
 }
 
+impl SampleTranslationsBinds {
+    pub fn new(size: usize) -> Self {
+        Self {
+            names: Vec::<String>::with_capacity(size),
+            descriptions: Vec::<Option<String>>::with_capacity(size),
+            languages: Vec::<String>::with_capacity(size),
+            ordinals: Vec::<i16>::with_capacity(size),
+        }
+    }
+}
+
 impl From<Vec<SampleTranslation>> for SampleTranslationsBinds {
-    fn from(val: Vec<SampleTranslation>) -> Self {
-        let len = val.len();
-        let mut names = Vec::<String>::with_capacity(len);
-        let mut descriptions = Vec::<Option<String>>::with_capacity(len);
-        let mut languages = Vec::<String>::with_capacity(len);
-        let mut ordinals = Vec::<i16>::with_capacity(len);
+    fn from(translations: Vec<SampleTranslation>) -> Self {
+        let mut binds = SampleTranslationsBinds::new(translations.len());
 
-        for translation in val {
-            names.push(translation.name);
-            descriptions.push(translation.description);
-            languages.push(translation.language);
-            ordinals.push(translation.ordinal);
+        for translation in translations {
+            binds.names.push(translation.name);
+            binds.descriptions.push(translation.description);
+            binds.languages.push(translation.language);
+            binds.ordinals.push(translation.ordinal);
         }
 
-        SampleTranslationsBinds {
-            names,
-            descriptions,
-            languages,
-            ordinals,
-        }
+        binds
     }
 }
 
